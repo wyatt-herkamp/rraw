@@ -8,7 +8,12 @@ use serde::de::DeserializeOwned;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 use serde::Serialize;
+use crate::utils::options::FeedOption;
+use crate::responses::user::Users;
+use crate::responses::subreddit::Subreddits;
 
+/// This is who you are. This is your identity and you access point to the Reddit API
+///
 pub struct Me {
     auth: Arc<Mutex<Box<dyn Auth>>>,
     client: Client,
@@ -111,5 +116,27 @@ impl Me {
             return Err(APIError::from(response));
         }
         return Err(APIError::ExhaustedListing);
+    }
+    /// Searches Reddit for subreddits
+    pub async fn search_subreddits(&self, name: String, limit: Option<u64>, feed: Option<FeedOption>) -> Result<Subreddits, APIError> {
+        let mut url = format!("https://www.reddit.com/subreddits/search.json?q={}", name);
+        if let Some(options) = feed {
+            url.push_str(options.url().as_str());
+        }
+        if let Some(limit) = limit {
+            url.push_str(&mut format!("&limit={}", limit));
+        }
+        self.get_json::<Subreddits>(&*url, false).await
+    }
+    /// Searches Reddit for Users
+    pub async fn search_users(&self, name: String, limit: Option<u64>, feed: Option<FeedOption>) -> Result<Users, APIError> {
+        let mut url = format!("https://www.reddit.com/users/search.json?q={}", name);
+        if let Some(options) = feed {
+            url.push_str(options.url().as_str());
+        }
+        if let Some(limit) = limit {
+            url.push_str(&mut format!("&limit={}", limit));
+        }
+        self.get_json::<Users>(&*url, false).await
     }
 }

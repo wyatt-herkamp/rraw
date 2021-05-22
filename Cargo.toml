@@ -3,7 +3,9 @@ name = "async_rawr"
 version = "0.1.0"
 authors = ["Wyatt J Herkamp <wherkamp@kingtux.me>"]
 edition = "2018"
-
+license = "MIT"
+repository = "https://github.com/wherkamp/async-rawr"
+description = "An async Rust API Wrapper for Reddit"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

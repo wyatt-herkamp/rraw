@@ -1,4 +1,4 @@
-use crate::responses::GenericResponse;
+use crate::responses::{GenericResponse, GenericListing};
 pub use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -18,3 +18,4 @@ pub struct AboutSubreddit {
 }
 
 pub type About = GenericResponse<AboutSubreddit>;
+pub type Subreddits = GenericListing<AboutSubreddit>;
