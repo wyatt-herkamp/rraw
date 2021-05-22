@@ -1,5 +1,5 @@
-pub use serde::Deserialize;
 use crate::responses::GenericResponse;
+pub use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct AboutSubreddit {
@@ -15,7 +15,6 @@ pub struct AboutSubreddit {
     pub subscribers: u64,
     pub accounts_active: u64,
     pub active_user_count: u64,
-
 }
 
 pub type About = GenericResponse<AboutSubreddit>;

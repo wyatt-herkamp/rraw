@@ -1,5 +1,5 @@
 use crate::me::Me;
-use crate::responses::subreddit::{AboutSubreddit, About};
+use crate::responses::subreddit::{About, AboutSubreddit};
 use crate::utils::error::APIError;
 
 pub struct Subreddit<'a> {

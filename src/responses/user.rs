@@ -1,5 +1,5 @@
-pub use serde::Deserialize;
 use crate::responses::GenericResponse;
+pub use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct AboutUser {

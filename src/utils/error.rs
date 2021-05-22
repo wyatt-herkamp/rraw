@@ -1,6 +1,6 @@
-use std::error::Error;
-use reqwest::StatusCode;
 use crate::utils::error::APIError::ReqwestError;
+use reqwest::StatusCode;
+use std::error::Error;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 #[derive(Debug)]
 pub enum APIError {
@@ -27,9 +27,7 @@ impl Error for APIError {
             APIError::JSONError(_) => {
                 "The JSON sent by Reddit did not match what new_rawr was expecting"
             }
-            APIError::ExpiredToken => {
-                "ExpiredToken"
-            }
+            APIError::ExpiredToken => "ExpiredToken",
             _ => "This error should not have occurred. Please file a bug",
         }
     }

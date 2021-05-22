@@ -1,4 +1,6 @@
+pub mod comments;
 pub mod other;
+pub mod submission;
 pub mod subreddit;
 pub mod user;
 

@@ -1,12 +1,12 @@
-use std::sync::{Arc, Mutex, MutexGuard};
 use crate::auth::Auth;
-use reqwest::{Client, Response, Body};
-use crate::utils::error::APIError;
 use crate::subreddit::Subreddit;
-use reqwest::header::{HeaderValue, USER_AGENT, HeaderMap};
-use serde::Deserialize;
-use serde::de::DeserializeOwned;
 use crate::user::User;
+use crate::utils::error::APIError;
+use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
+use reqwest::{Body, Client, Response};
+use serde::de::DeserializeOwned;
+use serde::Deserialize;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 pub struct Me {
     auth: Arc<Mutex<Box<dyn Auth>>>,
@@ -15,7 +15,10 @@ pub struct Me {
 }
 
 impl Me {
-    pub async fn login(auth: Arc<Mutex<Box<dyn Auth>>>, user_agent: String) -> Result<Me, APIError> {
+    pub async fn login(
+        auth: Arc<Mutex<Box<dyn Auth>>>,
+        user_agent: String,
+    ) -> Result<Me, APIError> {
         let client = Client::new();
         let x = auth.lock().unwrap().login(&client, &user_agent).await;
         Ok(Me {
@@ -28,38 +31,51 @@ impl Me {
         self.auth.lock().unwrap()
     }
     pub fn subreddit(&self, name: String) -> Subreddit {
-        Subreddit {
-            me: self,
-            name,
-        }
+        Subreddit { me: self, name }
     }
     pub fn user(&self, name: String) -> User {
-        User {
-            me: self,
-            name,
-        }
+        User { me: self, name }
     }
     pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, reqwest::Error> {
         let string = self.build_url(url, oauth);
         let mut headers = HeaderMap::new();
-        headers.insert(USER_AGENT, HeaderValue::from_str(&*self.user_agent).unwrap());
+        headers.insert(
+            USER_AGENT,
+            HeaderValue::from_str(&*self.user_agent).unwrap(),
+        );
         self.get_authenticator().headers(&mut headers);
         self.client.get(string).headers(headers).send().await
     }
-    pub async fn post(&self, url: &str, oauth: bool, body: String) -> Result<Response, reqwest::Error> {
+    pub async fn post(
+        &self,
+        url: &str,
+        oauth: bool,
+        body: String,
+    ) -> Result<Response, reqwest::Error> {
         let string = self.build_url(url, oauth);
         let mut headers = HeaderMap::new();
-        headers.insert(USER_AGENT, HeaderValue::from_str(&*self.user_agent).unwrap());
+        headers.insert(
+            USER_AGENT,
+            HeaderValue::from_str(&*self.user_agent).unwrap(),
+        );
         self.get_authenticator().headers(&mut headers);
-        self.client.post(string).headers(headers).body(Body::from(body)).send().await
+        self.client
+            .post(string)
+            .headers(headers)
+            .body(Body::from(body))
+            .send()
+            .await
     }
-    pub async fn get_json<T: DeserializeOwned>(&self, url: &str, oauth: bool) -> Result<T, APIError> {
+    pub async fn get_json<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        oauth: bool,
+    ) -> Result<T, APIError> {
         let x = self.get(url, oauth).await;
         return Me::respond::<T>(x).await;
     }
 
-    pub fn build_url(&self, dest: &str, oauth_required: bool)
-                     -> String {
+    pub fn build_url(&self, dest: &str, oauth_required: bool) -> String {
         let stem = if oauth_required {
             "https://oauth.reddit.com"
         } else {
@@ -67,7 +83,9 @@ impl Me {
         };
         format!("{}{}", stem, dest)
     }
-    pub async fn respond<T: DeserializeOwned>(result: Result<Response, reqwest::Error>) -> Result<T, APIError> {
+    pub async fn respond<T: DeserializeOwned>(
+        result: Result<Response, reqwest::Error>,
+    ) -> Result<T, APIError> {
         if let Ok(response) = result {
             let code = response.status();
             if !code.is_success() {
