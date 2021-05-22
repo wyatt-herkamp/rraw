@@ -27,5 +27,33 @@ pub struct Submission {
     pub distinguished: Option<String>,
 }
 
+/// The response from an add friend request
+#[derive(Debug, Deserialize)]
+pub struct Friend {
+    /// Was the friend request a success
+    pub success: bool,
+}
+
 /// Submissions
 pub type Submissions = GenericListing<Submission>;
+
+#[derive(Debug, Deserialize)]
+pub struct Moderator {
+    pub name: String,
+    pub author_flair_text: Option<String>,
+    pub author_flair_css_class: Option<String>,
+    pub date: u64,
+    pub mod_permissions: Vec<String>,
+}
+
+pub type Moderators = GenericListing<Moderator>;
+
+#[derive(Debug, Deserialize)]
+pub struct Contributor {
+    pub name: String,
+    pub id: Option<String>,
+    pub rel_id: Option<String>,
+    pub date: u64,
+}
+
+pub type Contributors = GenericListing<Contributor>;

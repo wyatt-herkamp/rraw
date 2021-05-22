@@ -7,6 +7,7 @@ use reqwest::{Body, Client, Response};
 use serde::de::DeserializeOwned;
 
 use std::sync::{Arc, Mutex, MutexGuard};
+use serde::Serialize;
 
 pub struct Me {
     auth: Arc<Mutex<Box<dyn Auth>>>,
@@ -50,7 +51,7 @@ impl Me {
         &self,
         url: &str,
         oauth: bool,
-        body: String,
+        body: Body,
     ) -> Result<Response, reqwest::Error> {
         let string = self.build_url(url, oauth);
         let mut headers = HeaderMap::new();
@@ -60,9 +61,8 @@ impl Me {
         );
         self.get_authenticator().headers(&mut headers);
         self.client
-            .post(string)
+            .post(string).body(body)
             .headers(headers)
-            .body(Body::from(body))
             .send()
             .await
     }
@@ -72,6 +72,16 @@ impl Me {
         oauth: bool,
     ) -> Result<T, APIError> {
         let x = self.get(url, oauth).await;
+        return Me::respond::<T>(x).await;
+    }
+
+    pub async fn post_json<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        oauth: bool,
+        body: Body,
+    ) -> Result<T, APIError> {
+        let x = self.post(url, oauth, body).await;
         return Me::respond::<T>(x).await;
     }
 
