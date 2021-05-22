@@ -7,6 +7,7 @@ use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 use serde_json::Value;
 
+/// The User Object for Reddit
 pub struct User<'a> {
     pub(crate) me: &'a Me,
     pub name: String,
@@ -19,6 +20,7 @@ impl<'a> PartialEq for User<'a> {
 }
 
 impl<'a> User<'a> {
+    /// Gets the about data for the user
     pub async fn about(&self) -> Result<About, APIError> {
         let string = format!("/u/{}/about.json", self.name.clone());
         return self.me.get_json::<About>(&*string, false).await;

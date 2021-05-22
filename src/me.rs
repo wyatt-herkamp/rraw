@@ -13,7 +13,7 @@ use crate::responses::user::Users;
 use crate::responses::subreddit::Subreddits;
 
 /// This is who you are. This is your identity and you access point to the Reddit API
-///
+
 pub struct Me {
     auth: Arc<Mutex<Box<dyn Auth>>>,
     client: Client,
@@ -21,6 +21,7 @@ pub struct Me {
 }
 
 impl Me {
+    /// Logs into Reddit and Returns a Me
     pub async fn login(
         auth: Arc<Mutex<Box<dyn Auth>>>,
         user_agent: String,
@@ -33,15 +34,19 @@ impl Me {
             user_agent,
         })
     }
+    /// Gets the authenticator. Internal use
     pub fn get_authenticator(&self) -> MutexGuard<Box<dyn Auth + 'static>> {
         self.auth.lock().unwrap()
     }
+    /// Creates a subreddit object. However, this will not tell you if the user exists.
     pub fn subreddit(&self, name: String) -> Subreddit {
         Subreddit { me: self, name }
     }
+    /// Creates a user object. However, this will not tell you if the user exists.
     pub fn user(&self, name: String) -> User {
         User { me: self, name }
     }
+    /// Makes a get request with Reqwest response
     pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, reqwest::Error> {
         let string = self.build_url(url, oauth);
         let mut headers = HeaderMap::new();
@@ -52,6 +57,7 @@ impl Me {
         self.get_authenticator().headers(&mut headers);
         self.client.get(string).headers(headers).send().await
     }
+    /// Makes a post request with Reqwest response
     pub async fn post(
         &self,
         url: &str,
@@ -71,6 +77,7 @@ impl Me {
             .send()
             .await
     }
+    /// Makes a get request with JSON response
     pub async fn get_json<T: DeserializeOwned>(
         &self,
         url: &str,
@@ -79,7 +86,7 @@ impl Me {
         let x = self.get(url, oauth).await;
         return Me::respond::<T>(x).await;
     }
-
+    /// Makes a post request with JSON response
     pub async fn post_json<T: DeserializeOwned>(
         &self,
         url: &str,
@@ -89,7 +96,7 @@ impl Me {
         let x = self.post(url, oauth, body).await;
         return Me::respond::<T>(x).await;
     }
-
+    /// Builds a URL
     pub fn build_url(&self, dest: &str, oauth_required: bool) -> String {
         let stem = if oauth_required {
             "https://oauth.reddit.com"
@@ -98,6 +105,7 @@ impl Me {
         };
         format!("{}{}", stem, dest)
     }
+    /// Handles a Response from Reqwest mainly for internal use
     pub async fn respond<T: DeserializeOwned>(
         result: Result<Response, reqwest::Error>,
     ) -> Result<T, APIError> {

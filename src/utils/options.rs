@@ -1,5 +1,6 @@
 pub use serde::Serialize;
 
+///A simple object to let you set informationons about the listing you are getting
 #[derive(Clone, Debug, Serialize)]
 pub struct FeedOption {
     pub after: Option<String>,
@@ -9,6 +10,7 @@ pub struct FeedOption {
 }
 
 impl FeedOption {
+    ///Returns the URL extension for the request
     pub fn url(self) -> String {
         let mut url = String::new();
         if let Some(after) = self.after {
@@ -29,6 +31,7 @@ impl FeedOption {
     }
 }
 
+///Time Period for the request
 #[derive(Copy, Clone, Debug, Serialize)]
 pub enum TimePeriod {
     Now,
@@ -40,6 +43,7 @@ pub enum TimePeriod {
 }
 
 impl TimePeriod {
+    /// Gets the string for Reddit
     pub fn get_string(&self) -> &str {
         match self {
             TimePeriod::Now => "now",
