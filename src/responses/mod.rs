@@ -13,7 +13,6 @@ pub struct GenericResponse<T> {
 #[derive(Deserialize, Debug)]
 pub struct Listing<T> {
     pub modhash: Option<String>,
-    pub dist: Option<i32>,
     pub after: Option<String>,
     pub before: Option<String>,
     pub children: Vec<T>,
