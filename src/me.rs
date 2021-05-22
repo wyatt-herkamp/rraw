@@ -5,7 +5,7 @@ use crate::utils::error::APIError;
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use reqwest::{Body, Client, Response};
 use serde::de::DeserializeOwned;
-use serde::Deserialize;
+
 use std::sync::{Arc, Mutex, MutexGuard};
 
 pub struct Me {
@@ -20,14 +20,14 @@ impl Me {
         user_agent: String,
     ) -> Result<Me, APIError> {
         let client = Client::new();
-        let x = auth.lock().unwrap().login(&client, &user_agent).await;
+        let _x = auth.lock().unwrap().login(&client, &user_agent).await;
         Ok(Me {
             auth,
             client,
             user_agent,
         })
     }
-    pub fn get_authenticator(&self) -> MutexGuard<Box<Auth + 'static>> {
+    pub fn get_authenticator(&self) -> MutexGuard<Box<dyn Auth + 'static>> {
         self.auth.lock().unwrap()
     }
     pub fn subreddit(&self, name: String) -> Subreddit {

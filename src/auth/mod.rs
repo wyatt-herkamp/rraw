@@ -1,8 +1,8 @@
 use reqwest::header::{
-    HeaderMap, HeaderName, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT,
+    HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT,
 };
-use reqwest::{Body, Client, Request, RequestBuilder};
-use std::collections::HashMap;
+use reqwest::{Body, Client};
+
 
 use crate::responses::other::TokenResponseData;
 use crate::utils::error::APIError;
@@ -28,15 +28,15 @@ pub struct AnonymousAuthenticator;
 
 #[async_trait]
 impl Auth for AnonymousAuthenticator {
-    async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, APIError> {
+    async fn login(&mut self, _client: &Client, _user_agent: &str) -> Result<bool, APIError> {
         Ok(true)
     }
 
-    async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+    async fn logout(&mut self, _client: &Client, _user_agent: &str) -> Result<(), APIError> {
         Ok(())
     }
 
-    fn headers(&self, headers: &mut HeaderMap) {}
+    fn headers(&self, _headers: &mut HeaderMap) {}
 
     fn oauth(&self) -> bool {
         false
@@ -120,7 +120,7 @@ impl Auth for PasswordAuthenticator {
             let value = response.json::<TokenResponseData>().await;
             if let Ok(token) = value {
                 self.token = Some(token.access_token);
-                let x = (token.expires_in * 1000);
+                let x = token.expires_in * 1000;
                 let x1 = (x as u128)
                     + SystemTime::now()
                         .duration_since(UNIX_EPOCH)
@@ -137,7 +137,7 @@ impl Auth for PasswordAuthenticator {
         return Err(APIError::ExhaustedListing);
     }
 
-    async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+    async fn logout(&mut self, _client: &Client, _user_agent: &str) -> Result<(), APIError> {
         todo!()
     }
 
