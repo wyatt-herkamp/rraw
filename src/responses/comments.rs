@@ -20,15 +20,6 @@ pub struct Comment {
     pub distinguished: Option<String>,
     pub stickied: Option<bool>,
     pub ups: Option<i32>,
-    pub replies: Option<CommentReplies>,
-}
-
-pub type Reply = GenericListing<Comment>;
-
-#[derive(Debug, Deserialize)]
-pub enum CommentReplies {
-    Reply(Reply),
-    Str(String),
 }
 
 pub type Comments = GenericResponse<Comment>;
