@@ -68,7 +68,7 @@ impl PasswordAuthenticator {
         client_secret: &str,
         username: &str,
         password: &str,
-    ) -> Arc<Mutex<Box<dyn Auth + Send>>> {
+    ) -> Arc<Mutex<Box<dyn Auth >>> {
         Arc::new(Mutex::new(Box::new(PasswordAuthenticator {
             token: None,
             expiration_time: None,
@@ -120,6 +120,7 @@ impl Auth for PasswordAuthenticator {
             let value = response.json::<TokenResponseData>().await;
             if let Ok(token) = value {
                 self.token = Some(token.access_token);
+                println!("{:?}", &self.token);
                 let x = token.expires_in * 1000;
                 let x1 = (x as u128)
                     + SystemTime::now()

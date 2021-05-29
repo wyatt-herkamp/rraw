@@ -55,7 +55,7 @@ impl<'a> User<'a> {
             .get_json::<GenericListing<Value>>(&*string, false)
             .await;
     }
-    pub async fn saved(&self, feed: Option<FeedOption>) -> Result<GenericListing<RedditType>, APIError> {
+    pub async fn saved(&self, feed: Option<FeedOption>) -> Result<GenericListing<Value>, APIError> {
         let mut string = format!("/u/{}/saved.json", self.name.clone());
         if let Some(options) = feed {
             string.push_str("?");
@@ -63,7 +63,7 @@ impl<'a> User<'a> {
         }
         return self
             .me
-            .get_json::<GenericListing<RedditType>>(&*string, false)
+            .get_json::<GenericListing<Value>>(&*string, true)
             .await;
     }
 }

@@ -9,9 +9,9 @@ mod utils;
 mod tests {
     use tokio;
 
-    use crate::auth::AnonymousAuthenticator;
+    use crate::auth::{AnonymousAuthenticator, PasswordAuthenticator};
     use crate::me::Me;
-    use crate::responses::RedditType::Comment;
+    use crate::responses::RedditType::{Comment, Link};
     use crate::responses::RedditType;
 
     #[tokio::test]
@@ -29,25 +29,35 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn anon_user_saved() {
+    async fn user_saved() {
+        dotenv::dotenv().ok();
+        let arc = PasswordAuthenticator::new(
+            std::env::var("CLIENT_KEY").unwrap().as_str(),
+            std::env::var("CLIENT_SECRET").unwrap().as_str(),
+            std::env::var("REDDIT_USER").unwrap().as_str(),
+            std::env::var("PASSWORD").unwrap().as_str(),
+        );
         let me = Me::login(
-            AnonymousAuthenticator::new(),
+            arc,
             "async_rawr test (by u/KingTuxWH)".to_string(),
         )
             .await
             .unwrap();
         let user = me.user("KingTuxWH".to_string());
         let x = user.saved(None).await.unwrap();
-        for x in x.data.children {
-            println!("{}", x.kind);
-            match x.data {
-                RedditType::Comment(comment) => {
-                    println!("Comment: {:?}", comment.author);
+        for x in x.data.safe_children() {
+            match x {
+                Comment(comment) => {
+                    println!("Comment {:?}", comment.unwrap().body);
+
                 }
-                RedditType::Submission(submission) => {
-                    println!("Submission: {:?}", submission.author);
+                Link(link) => {
+                    println!("Link {:?}", link.unwrap().name);
+
                 }
+                _ => {}
             }
+
         }
     }
 
