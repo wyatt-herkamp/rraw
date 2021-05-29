@@ -2,7 +2,7 @@ use crate::me::Me;
 use crate::responses::comments::Comments;
 use crate::responses::submission::Submissions;
 use crate::responses::user::About;
-use crate::responses::GenericListing;
+use crate::responses::{GenericListing, RedditType};
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 use serde_json::Value;
@@ -55,7 +55,7 @@ impl<'a> User<'a> {
             .get_json::<GenericListing<Value>>(&*string, false)
             .await;
     }
-    pub async fn saved(&self, feed: Option<FeedOption>) -> Result<GenericListing<Value>, APIError> {
+    pub async fn saved(&self, feed: Option<FeedOption>) -> Result<GenericListing<RedditType>, APIError> {
         let mut string = format!("/u/{}/saved.json", self.name.clone());
         if let Some(options) = feed {
             string.push_str("?");
@@ -63,7 +63,7 @@ impl<'a> User<'a> {
         }
         return self
             .me
-            .get_json::<GenericListing<Value>>(&*string, false)
+            .get_json::<GenericListing<RedditType>>(&*string, false)
             .await;
     }
 }
