@@ -6,12 +6,12 @@ use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use reqwest::{Body, Client, Response};
 use serde::de::DeserializeOwned;
 
-use std::sync::{Arc, Mutex, MutexGuard};
-use serde::Serialize;
-use crate::utils::options::FeedOption;
-use crate::responses::user::Users;
 use crate::responses::subreddit::Subreddits;
+use crate::responses::user::Users;
 use crate::responses::RedditListing;
+use crate::utils::options::FeedOption;
+use serde::Serialize;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 
@@ -73,7 +73,8 @@ impl Me {
         );
         self.get_authenticator().headers(&mut headers);
         self.client
-            .post(string).body(body)
+            .post(string)
+            .body(body)
             .headers(headers)
             .send()
             .await
@@ -127,7 +128,12 @@ impl Me {
         return Err(APIError::ExhaustedListing);
     }
     /// Searches Reddit for subreddits
-    pub async fn search_subreddits(&self, name: String, limit: Option<u64>, feed: Option<FeedOption>) -> Result<Subreddits, APIError> {
+    pub async fn search_subreddits(
+        &self,
+        name: String,
+        limit: Option<u64>,
+        feed: Option<FeedOption>,
+    ) -> Result<Subreddits, APIError> {
         let mut url = format!("https://www.reddit.com/subreddits/search.json?q={}", name);
         if let Some(options) = feed {
             url.push_str(options.url().as_str());
@@ -138,7 +144,12 @@ impl Me {
         self.get_json::<Subreddits>(&*url, false).await
     }
     /// Searches Reddit for Users
-    pub async fn search_users(&self, name: String, limit: Option<u64>, feed: Option<FeedOption>) -> Result<Users, APIError> {
+    pub async fn search_users(
+        &self,
+        name: String,
+        limit: Option<u64>,
+        feed: Option<FeedOption>,
+    ) -> Result<Users, APIError> {
         let mut url = format!("https://www.reddit.com/users/search.json?q={}", name);
         if let Some(options) = feed {
             url.push_str(options.url().as_str());

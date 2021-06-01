@@ -1,7 +1,7 @@
 use serde::{Deserialize, Deserializer};
 
-use crate::responses::{GenericListing, GenericResponse};
 use crate::responses::subreddit::AboutSubreddit;
+use crate::responses::{GenericListing, GenericResponse};
 use serde::de::Error;
 
 #[derive(Debug, Deserialize)]
@@ -30,7 +30,10 @@ pub struct Submission {
 }
 
 impl<'de> Deserialize<'de> for GenericResponse<Submission> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Submission>, D::Error> where D: Deserializer<'de>, {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Submission>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
         let result = serde_json::from_value(value);
         if let Err(e) = result {
@@ -60,7 +63,10 @@ pub struct Moderator {
 }
 
 impl<'de> Deserialize<'de> for GenericResponse<Moderator> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Moderator>, D::Error> where D: Deserializer<'de>, {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Moderator>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
         let result = serde_json::from_value(value);
         if let Err(e) = result {
@@ -81,7 +87,10 @@ pub struct Contributor {
 }
 
 impl<'de> Deserialize<'de> for GenericResponse<Contributor> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Contributor>, D::Error> where D: Deserializer<'de>, {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Contributor>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
         let result = serde_json::from_value(value);
         if let Err(e) = result {

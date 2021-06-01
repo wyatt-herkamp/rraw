@@ -1,9 +1,9 @@
-use crate::responses::{GenericResponse, GenericListing};
-pub use serde::Deserialize;
-use serde_json::Value;
+use crate::responses::{GenericListing, GenericResponse};
 use crate::subreddit::Subreddit;
-use serde::Deserializer;
 use serde::de::Error;
+pub use serde::Deserialize;
+use serde::Deserializer;
+use serde_json::Value;
 
 #[derive(Deserialize, Debug)]
 pub struct AboutSubreddit {
@@ -106,10 +106,12 @@ pub struct AboutSubreddit {
     pub wiki_enabled: Option<bool>,
     pub wls: Option<Value>,
     pub kind: Option<String>,
-
 }
 impl<'de> Deserialize<'de> for GenericResponse<AboutSubreddit> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<AboutSubreddit>, D::Error> where D: Deserializer<'de>, {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<AboutSubreddit>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
         let result = serde_json::from_value(value);
         if let Err(e) = result {

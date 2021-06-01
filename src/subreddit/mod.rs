@@ -1,10 +1,10 @@
 use crate::me::Me;
-use crate::responses::subreddit::{ SubredditResponse};
+use crate::responses::submission::{Contributors, Friend, Moderators};
+use crate::responses::subreddit::SubredditResponse;
+use crate::responses::{RedditListing, RedditResponse};
 use crate::utils::error::APIError;
-use crate::responses::submission::{Contributors, Moderators, Friend};
 use crate::utils::options::FeedOption;
 use reqwest::Body;
-use crate::responses::{RedditResponse, RedditListing};
 
 pub struct Subreddit<'a> {
     pub(crate) me: &'a Me,
@@ -22,7 +22,10 @@ impl<'a> Subreddit<'a> {
         let string = format!("/r/{}/about.json", self.name.clone());
         return self.me.get_json::<SubredditResponse>(&*string, false).await;
     }
-    pub async fn get_contributors(&self, feed: Option<FeedOption>) -> Result<Contributors, APIError> {
+    pub async fn get_contributors(
+        &self,
+        feed: Option<FeedOption>,
+    ) -> Result<Contributors, APIError> {
         let mut string = format!("/r/{}/about/contributors.json", self.name.clone());
         if let Some(options) = feed {
             string.push_str("?");
@@ -51,4 +54,3 @@ impl<'a> Subreddit<'a> {
         return self.me.post_json::<Friend>(&*string, true, body).await;
     }
 }
-

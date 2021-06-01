@@ -1,8 +1,5 @@
-use reqwest::header::{
-    HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT,
-};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Client};
-
 
 use crate::responses::other::TokenResponseData;
 use crate::utils::error::APIError;
@@ -68,7 +65,7 @@ impl PasswordAuthenticator {
         client_secret: &str,
         username: &str,
         password: &str,
-    ) -> Arc<Mutex<Box<dyn Auth >>> {
+    ) -> Arc<Mutex<Box<dyn Auth>>> {
         Arc::new(Mutex::new(Box::new(PasswordAuthenticator {
             token: None,
             expiration_time: None,

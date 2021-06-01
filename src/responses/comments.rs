@@ -1,5 +1,5 @@
-use serde::{Deserialize, Deserializer};
 use serde::de::Error;
+use serde::{Deserialize, Deserializer};
 
 use crate::responses::{GenericListing, GenericResponse};
 
@@ -25,7 +25,10 @@ pub struct Comment {
 }
 
 impl<'de> Deserialize<'de> for GenericResponse<Comment> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Comment>, D::Error> where D: Deserializer<'de>, {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Comment>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
         let result = serde_json::from_value(value);
         if let Err(e) = result {

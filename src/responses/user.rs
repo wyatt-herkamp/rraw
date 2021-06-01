@@ -1,8 +1,8 @@
-use crate::responses::{GenericResponse, GenericListing};
-pub use serde::Deserialize;
-use serde_json::Value;
-use serde::Deserializer;
+use crate::responses::{GenericListing, GenericResponse};
 use serde::de::Error;
+pub use serde::Deserialize;
+use serde::Deserializer;
+use serde_json::Value;
 
 ///About Data for the User
 #[derive(Deserialize, Debug)]
@@ -36,7 +36,7 @@ pub struct AboutUser {
     /// IDK
     pub is_sponsor: Option<bool>,
     /// Number of friends. It is always 0. :(
-    pub  num_friends: Option<u64>,
+    pub num_friends: Option<u64>,
     /// You can edit names?
     pub can_edit_name: Option<bool>,
     /// Verified
@@ -78,7 +78,7 @@ pub struct AboutUser {
     /// has_android_subscription
     pub has_android_subscription: Option<bool>,
     /// in_redesign_beta
-    pub  in_redesign_beta: Option<bool>,
+    pub in_redesign_beta: Option<bool>,
     ///has_mod_mail
     pub has_mod_mail: Option<bool>,
     ///pref_nightmode
@@ -123,10 +123,12 @@ pub struct AboutUser {
     pub comment_karma: u64,
     /// has_subscribed
     pub has_subscribed: Option<bool>,
-
 }
 impl<'de> Deserialize<'de> for GenericResponse<AboutUser> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<AboutUser>, D::Error> where D: Deserializer<'de>, {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<AboutUser>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
         let result = serde_json::from_value(value);
         if let Err(e) = result {

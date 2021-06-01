@@ -1,8 +1,8 @@
 use crate::me::Me;
 use crate::responses::comments::Comments;
 use crate::responses::submission::Submissions;
-use crate::responses::user::{ AboutUser, UserResponse};
-use crate::responses::{GenericListing, RedditType, RedditListing};
+use crate::responses::user::{AboutUser, UserResponse};
+use crate::responses::{GenericListing, RedditListing, RedditType};
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 use serde_json::Value;
@@ -41,19 +41,13 @@ impl<'a> User<'a> {
         }
         return self.me.get_json::<Submissions>(&*string, false).await;
     }
-    pub async fn overview(
-        &self,
-        feed: Option<FeedOption>,
-    ) -> Result<RedditListing, APIError> {
+    pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
         let mut string = format!("/u/{}/overview.json", self.name.clone());
         if let Some(options) = feed {
             string.push_str("?");
             string.push_str(options.url().as_str());
         }
-        return self
-            .me
-            .get_json::<RedditListing>(&*string, false)
-            .await;
+        return self.me.get_json::<RedditListing>(&*string, false).await;
     }
     pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
         let mut string = format!("/u/{}/saved.json", self.name.clone());
@@ -61,9 +55,6 @@ impl<'a> User<'a> {
             string.push_str("?");
             string.push_str(options.url().as_str());
         }
-        return self
-            .me
-            .get_json::<RedditListing>(&*string, true)
-            .await;
+        return self.me.get_json::<RedditListing>(&*string, true).await;
     }
 }
