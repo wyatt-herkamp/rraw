@@ -13,20 +13,27 @@ pub mod submission;
 pub mod subreddit;
 pub mod user;
 
+/// A Generic Response from Reddit the type is pre determined by API
 #[derive(Deserialize, Debug)]
 pub struct GenericResponse<T> {
+    /// The kind value from Reddit
     pub kind: String,
+    /// Data
     pub data: T,
 }
+
+/// A RedditResponse the type is dynamically decided based on the kind data
 pub struct RedditResponse {
+    /// Kind data
     pub kind: String,
+    /// Data response
     pub data: RedditType,
 }
 
 
-
 impl RedditResponse {
-    pub fn new(reddit_type: RedditType) ->RedditResponse {
+    /// Creates a new Reddit Response for internal use
+    pub fn new(reddit_type: RedditType) -> RedditResponse {
         let kind = match reddit_type {
             RedditType::Comment(_) => "t1",
             RedditType::Account(_) => "t2",
@@ -72,22 +79,36 @@ impl<'de> Deserialize<'de> for RedditResponse {
 
 
 #[derive(Deserialize, Debug)]
+/// The Listing API for async rawr
 pub struct Listing<T> {
+    /// Modhash from Reddit
     pub modhash: Option<String>,
+    /// After from Reddit
     pub after: Option<String>,
+    /// before from Reddit
     pub before: Option<String>,
+    /// The Children of the post. Either will be a GenericResponse<T> or A RedditResponse
     pub children: Vec<T>,
 }
 
+/// GenericListing mixes the GenericResponse and Listing for simplicity
 pub type GenericListing<T> = GenericResponse<Listing<GenericResponse<T>>>;
+/// RedditListing uses a RedditResponse
 pub type RedditListing = GenericResponse<Listing<RedditResponse>>;
 
-#[derive( Debug)]
+/// RedditType allows for dynamic data responses
+#[derive(Debug)]
 pub enum RedditType {
+    /// Comment
     Comment(Comment),
+    /// About user
     Account(AboutUser),
+    /// Submission
     Link(Submission),
+    /// TODO
     Message,
+    /// About Subreddit
     Subreddit(AboutSubreddit),
+    /// TODO
     Award,
 }
