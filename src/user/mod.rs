@@ -1,11 +1,10 @@
 use crate::me::Me;
+use crate::responses::{GenericListing, RedditListing, RedditType};
 use crate::responses::comments::Comments;
 use crate::responses::submission::Submissions;
-use crate::responses::user::{UserResponse};
-use crate::responses::{GenericListing, RedditListing, RedditType};
+use crate::responses::user::UserResponse;
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
-
 
 /// The User Object for Reddit
 pub struct User<'a> {
@@ -25,6 +24,7 @@ impl<'a> User<'a> {
         let string = format!("/u/{}/about.json", self.name.clone());
         return self.me.get_json::<UserResponse>(&*string, false).await;
     }
+    /// Comments
     pub async fn comments(&self, feed: Option<FeedOption>) -> Result<Comments, APIError> {
         let mut string = format!("/u/{}/comments.json", self.name.clone());
         if let Some(options) = feed {
@@ -33,6 +33,7 @@ impl<'a> User<'a> {
         }
         return self.me.get_json::<Comments>(&*string, false).await;
     }
+    /// user Submissions
     pub async fn submissions(&self, feed: Option<FeedOption>) -> Result<Submissions, APIError> {
         let mut string = format!("/u/{}/submitted.json", self.name.clone());
         if let Some(options) = feed {
@@ -41,6 +42,7 @@ impl<'a> User<'a> {
         }
         return self.me.get_json::<Submissions>(&*string, false).await;
     }
+    /// User Overview
     pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
         let mut string = format!("/u/{}/overview.json", self.name.clone());
         if let Some(options) = feed {
@@ -49,6 +51,7 @@ impl<'a> User<'a> {
         }
         return self.me.get_json::<RedditListing>(&*string, false).await;
     }
+    /// Get User saved post. The user must be logged in
     pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
         let mut string = format!("/u/{}/saved.json", self.name.clone());
         if let Some(options) = feed {
