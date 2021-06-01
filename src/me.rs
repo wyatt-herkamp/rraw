@@ -11,6 +11,7 @@ use serde::Serialize;
 use crate::utils::options::FeedOption;
 use crate::responses::user::Users;
 use crate::responses::subreddit::Subreddits;
+use crate::responses::RedditListing;
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 

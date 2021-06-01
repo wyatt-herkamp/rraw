@@ -1,9 +1,10 @@
 use crate::me::Me;
-use crate::responses::subreddit::{About};
+use crate::responses::subreddit::{ SubredditResponse};
 use crate::utils::error::APIError;
 use crate::responses::submission::{Contributors, Moderators, Friend};
 use crate::utils::options::FeedOption;
 use reqwest::Body;
+use crate::responses::{RedditResponse, RedditListing};
 
 pub struct Subreddit<'a> {
     pub(crate) me: &'a Me,
@@ -17,9 +18,9 @@ impl<'a> PartialEq for Subreddit<'a> {
 }
 
 impl<'a> Subreddit<'a> {
-    pub async fn about(&self) -> Result<About, APIError> {
+    pub async fn about(&self) -> Result<SubredditResponse, APIError> {
         let string = format!("/r/{}/about.json", self.name.clone());
-        return self.me.get_json::<About>(&*string, false).await;
+        return self.me.get_json::<SubredditResponse>(&*string, false).await;
     }
     pub async fn get_contributors(&self, feed: Option<FeedOption>) -> Result<Contributors, APIError> {
         let mut string = format!("/r/{}/about/contributors.json", self.name.clone());

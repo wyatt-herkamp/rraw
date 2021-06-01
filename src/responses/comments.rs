@@ -1,5 +1,7 @@
+use serde::{Deserialize, Deserializer};
+use serde::de::Error;
+
 use crate::responses::{GenericListing, GenericResponse};
-use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Comment {
@@ -20,6 +22,17 @@ pub struct Comment {
     pub distinguished: Option<String>,
     pub stickied: Option<bool>,
     pub ups: Option<i32>,
+}
+
+impl<'de> Deserialize<'de> for GenericResponse<Comment> {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<Comment>, D::Error> where D: Deserializer<'de>, {
+        let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
+        let result = serde_json::from_value(value);
+        if let Err(e) = result {
+            return Err(D::Error::custom(e.to_string()));
+        }
+        return Ok(result.unwrap());
+    }
 }
 
 pub type Comments = GenericResponse<Comment>;

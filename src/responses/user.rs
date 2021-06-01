@@ -1,6 +1,8 @@
 use crate::responses::{GenericResponse, GenericListing};
 pub use serde::Deserialize;
 use serde_json::Value;
+use serde::Deserializer;
+use serde::de::Error;
 
 ///About Data for the User
 #[derive(Deserialize, Debug)]
@@ -123,9 +125,17 @@ pub struct AboutUser {
     pub has_subscribed: Option<bool>,
 
 }
-
-
+impl<'de> Deserialize<'de> for GenericResponse<AboutUser> {
+    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<AboutUser>, D::Error> where D: Deserializer<'de>, {
+        let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
+        let result = serde_json::from_value(value);
+        if let Err(e) = result {
+            return Err(D::Error::custom(e.to_string()));
+        }
+        return Ok(result.unwrap());
+    }
+}
 /// About with a GenericResponse Wrap
-pub type About = GenericResponse<AboutUser>;
+pub type UserResponse = GenericResponse<AboutUser>;
 /// A listing of user abouts
 pub type Users = GenericListing<AboutUser>;
