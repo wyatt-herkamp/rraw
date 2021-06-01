@@ -124,19 +124,7 @@ pub struct AboutUser {
     /// has_subscribed
     pub has_subscribed: Option<bool>,
 }
-impl<'de> Deserialize<'de> for GenericResponse<AboutUser> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<AboutUser>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
-        let result = serde_json::from_value(value);
-        if let Err(e) = result {
-            return Err(D::Error::custom(e.to_string()));
-        }
-        return Ok(result.unwrap());
-    }
-}
+
 /// About with a GenericResponse Wrap
 pub type UserResponse = GenericResponse<AboutUser>;
 /// A listing of user abouts

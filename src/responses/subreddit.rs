@@ -107,18 +107,6 @@ pub struct AboutSubreddit {
     pub wls: Option<Value>,
     pub kind: Option<String>,
 }
-impl<'de> Deserialize<'de> for GenericResponse<AboutSubreddit> {
-    fn deserialize<D>(deserializer: D) -> Result<GenericResponse<AboutSubreddit>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
-        let result = serde_json::from_value(value);
-        if let Err(e) = result {
-            return Err(D::Error::custom(e.to_string()));
-        }
-        return Ok(result.unwrap());
-    }
-}
+
 pub type SubredditResponse = GenericResponse<AboutSubreddit>;
 pub type Subreddits = GenericListing<AboutSubreddit>;
