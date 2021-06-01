@@ -9,12 +9,12 @@ mod utils;
 mod tests {
     use tokio;
 
-    use RedditType::Subreddit;
+    
 
-    use crate::auth::{AnonymousAuthenticator, PasswordAuthenticator};
+    use crate::auth::{AnonymousAuthenticator};
     use crate::me::Me;
     use crate::responses::RedditType;
-    use crate::responses::RedditType::{Account, Comment, Link};
+    
 
     #[tokio::test]
     async fn anon_subreddit_tests() {

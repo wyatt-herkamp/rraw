@@ -8,9 +8,9 @@ use serde::de::DeserializeOwned;
 
 use crate::responses::subreddit::Subreddits;
 use crate::responses::user::Users;
-use crate::responses::RedditListing;
+
 use crate::utils::options::FeedOption;
-use serde::Serialize;
+
 use std::sync::{Arc, Mutex, MutexGuard};
 
 /// This is who you are. This is your identity and you access point to the Reddit API

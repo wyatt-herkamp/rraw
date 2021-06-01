@@ -1,5 +1,5 @@
 use crate::responses::{GenericListing, GenericResponse};
-use crate::subreddit::Subreddit;
+
 use serde::de::Error;
 pub use serde::Deserialize;
 use serde::Deserializer;

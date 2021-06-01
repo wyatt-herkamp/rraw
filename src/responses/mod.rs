@@ -1,13 +1,13 @@
 use serde::de::Error;
 pub use serde::Deserialize;
 use serde::Deserializer;
-use serde_json::Value;
+
 
 use crate::responses::comments::Comment;
 use crate::responses::submission::Submission;
 use crate::responses::subreddit::AboutSubreddit;
 use crate::responses::user::AboutUser;
-use crate::utils::error::APIError;
+
 
 pub mod comments;
 pub mod other;
@@ -25,7 +25,7 @@ pub type RedditResponse = GenericResponse<RedditType>;
 
 impl GenericResponse<RedditType> {
     pub fn new(reddit_type: RedditType) -> GenericResponse<RedditType> {
-        let mut kind = match reddit_type {
+        let kind = match reddit_type {
             RedditType::Comment(_) => "t1",
             RedditType::Account(_) => "t2",
             RedditType::Link(_) => "t3",
@@ -50,13 +50,13 @@ impl<'de> Deserialize<'de> for GenericResponse<RedditType> {
         let x = value["kind"].as_str().unwrap();
         match x {
             "t1" => Ok(GenericResponse::<RedditType>::new(RedditType::Comment(
-                (serde_json::from_value(value["data"].clone()).unwrap()),
+                serde_json::from_value(value["data"].clone()).unwrap(),
             ))),
             "t2" => Ok(GenericResponse::<RedditType>::new(RedditType::Account(
-                (serde_json::from_value(value["data"].clone()).unwrap()),
+                serde_json::from_value(value["data"].clone()).unwrap(),
             ))),
             "t3" => Ok(GenericResponse::<RedditType>::new(RedditType::Link(
-                (serde_json::from_value(value["data"].clone()).unwrap()),
+                serde_json::from_value(value["data"].clone()).unwrap(),
             ))),
             //"t4" => { Ok(GenericResponse::<RedditType>::new(RedditType::Comment(serde_json::from_str(value["data"].as_str().unwrap()).unwrap()))) }
             "t5" => Ok(GenericResponse::<RedditType>::new(RedditType::Subreddit(

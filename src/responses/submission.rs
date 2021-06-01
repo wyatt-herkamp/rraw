@@ -1,6 +1,6 @@
 use serde::{Deserialize, Deserializer};
 
-use crate::responses::subreddit::AboutSubreddit;
+
 use crate::responses::{GenericListing, GenericResponse};
 use serde::de::Error;
 

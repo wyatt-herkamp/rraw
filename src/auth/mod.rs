@@ -10,9 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[async_trait]
 pub trait Auth {
     async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, APIError>;
-    async fn refresh_token(&mut self, client: &Client, user_agent: &str) -> Result<bool, APIError> {
-        self.login(client, user_agent).await
-    }
+
     async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError>;
 
     fn headers(&self, headers: &mut HeaderMap);

@@ -1,7 +1,7 @@
 use crate::me::Me;
 use crate::responses::submission::{Contributors, Friend, Moderators};
 use crate::responses::subreddit::SubredditResponse;
-use crate::responses::{RedditListing, RedditResponse};
+
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 use reqwest::Body;
@@ -42,13 +42,13 @@ impl<'a> Subreddit<'a> {
         return self.me.get_json::<Moderators>(&*string, true).await;
     }
     pub async fn add_friend(&self, username: String, typ: String) -> Result<Friend, APIError> {
-        let mut string = format!("/r/{}/api/friend", self.name.clone());
+        let string = format!("/r/{}/api/friend", self.name.clone());
 
         let body = Body::from(format!("username={}&type={}", username, typ));
         return self.me.post_json::<Friend>(&*string, true, body).await;
     }
     pub async fn remove_friend(&self, username: String, typ: String) -> Result<Friend, APIError> {
-        let mut string = format!("/r/{}/api/unfriend", self.name.clone());
+        let string = format!("/r/{}/api/unfriend", self.name.clone());
 
         let body = Body::from(format!("username={}&type={}", username, typ));
         return self.me.post_json::<Friend>(&*string, true, body).await;

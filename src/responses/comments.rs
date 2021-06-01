@@ -1,7 +1,7 @@
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
 
-use crate::responses::{GenericListing, GenericResponse};
+use crate::responses::{GenericResponse};
 
 #[derive(Debug, Deserialize)]
 pub struct Comment {
