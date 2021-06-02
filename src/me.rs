@@ -74,9 +74,6 @@ impl Me {
             HeaderValue::from_str(&*self.user_agent).unwrap(),
         );
         guard.headers(&mut headers);
-        for x in &headers {
-            println!("{:?}", x);
-        }
         self.client.get(string).headers(headers).send().await
     }
     /// Makes a post request with Reqwest response
