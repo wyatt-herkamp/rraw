@@ -1,3 +1,5 @@
-# Async Rawr
+# RRAW
 
-Async Rust API Wrapper for Reddit
+**R**ust **R**eddit **A**PI **W**rapper
+
+
