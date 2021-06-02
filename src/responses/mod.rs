@@ -9,7 +9,7 @@ use crate::responses::subreddit::AboutSubreddit;
 use crate::responses::user::AboutUser;
 
 pub mod comments;
-mod message;
+pub mod message;
 pub mod other;
 pub mod submission;
 pub mod subreddit;

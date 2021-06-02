@@ -1,10 +1,10 @@
-mod auth;
-mod me;
-mod message;
-mod responses;
-mod subreddit;
-mod user;
-mod utils;
+pub mod auth;
+pub mod me;
+pub mod message;
+pub mod responses;
+pub mod subreddit;
+pub mod user;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {
