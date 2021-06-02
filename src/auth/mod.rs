@@ -50,7 +50,7 @@ impl Authenticator for AnonymousAuthenticator {
 
 impl AnonymousAuthenticator {
     /// Creates a new Authenticator
-    pub fn new() -> Arc<Mutex<Box<dyn Authenticator>>> {
+    pub fn new() -> Arc<Mutex<Box<dyn Authenticator + Send>>> {
         Arc::new(Mutex::new(Box::new(AnonymousAuthenticator {})))
     }
 }
@@ -78,7 +78,7 @@ impl PasswordAuthenticator {
         client_secret: &str,
         username: &str,
         password: &str,
-    ) -> Arc<Mutex<Box<dyn Authenticator>>> {
+    ) -> Arc<Mutex<Box<dyn Authenticator + Send>>> {
         Arc::new(Mutex::new(Box::new(PasswordAuthenticator {
             token: None,
             expiration_time: None,

@@ -20,7 +20,7 @@ use crate::utils::options::FeedOption;
 /// This is who you are. This is your identity and you access point to the Reddit API
 
 pub struct Me {
-    auth: Arc<Mutex<Box<dyn Authenticator>>>,
+    auth: Arc<Mutex<Box<dyn Authenticator+ Send>>>,
     client: Client,
     user_agent: String,
 }
@@ -28,7 +28,7 @@ pub struct Me {
 impl Me {
     /// Logs into Reddit and Returns a Me
     pub async fn login(
-        auth: Arc<Mutex<Box<dyn Authenticator>>>,
+        auth: Arc<Mutex<Box<dyn Authenticator+ Send>>>,
         user_agent: String,
     ) -> Result<Me, APIError> {
         let client = Client::new();
@@ -40,7 +40,7 @@ impl Me {
         })
     }
     /// Gets the authenticator. Internal use
-    pub fn get_authenticator(&self) -> MutexGuard<Box<dyn Authenticator + 'static>> {
+    pub fn get_authenticator(&self) -> MutexGuard<Box<dyn Authenticator + 'static+ Send>> {
         self.auth.lock().unwrap()
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
