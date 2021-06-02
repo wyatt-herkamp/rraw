@@ -1,17 +1,21 @@
+use std::fmt::{Display, Formatter};
+use std::fmt;
+use std::str::FromStr;
+use std::sync::{Arc, Mutex, MutexGuard};
+
+use reqwest::{Body, Client, Response};
+use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
+use serde::{de, Deserialize, Deserializer};
+use serde::de::DeserializeOwned;
+
 use crate::auth::Auth;
+use crate::message::Inbox;
+use crate::responses::subreddit::Subreddits;
+use crate::responses::user::Users;
 use crate::subreddit::Subreddit;
 use crate::user::User;
 use crate::utils::error::APIError;
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
-use reqwest::{Body, Client, Response};
-use serde::de::DeserializeOwned;
-
-use crate::responses::subreddit::Subreddits;
-use crate::responses::user::Users;
-
 use crate::utils::options::FeedOption;
-
-use std::sync::{Arc, Mutex, MutexGuard};
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 
@@ -42,6 +46,12 @@ impl Me {
     /// Creates a subreddit object. However, this will not tell you if the user exists.
     pub fn subreddit(&self, name: String) -> Subreddit {
         Subreddit { me: self, name }
+    }
+    /// Inbox
+    pub fn inbox(&self) -> Inbox {
+        Inbox {
+            me: self
+        }
     }
     /// Creates a user object. However, this will not tell you if the user exists.
     pub fn user(&self, name: String) -> User {
@@ -116,6 +126,7 @@ impl Me {
             if !code.is_success() {
                 return Err(APIError::HTTPError(code));
             }
+
             let value = response.json::<T>().await;
             if let Ok(about) = value {
                 return Ok(about);
@@ -158,5 +169,89 @@ impl Me {
             url.push_str(&mut format!("&limit={}", limit));
         }
         self.get_json::<Users>(&*url, false).await
+    }
+}
+
+#[derive(Debug)]
+pub enum RedditType {
+    Comment,
+    Account,
+    Link,
+    Message,
+    Subreddit,
+    Award,
+}
+
+impl<'de> Deserialize<'de> for RedditType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        let s = String::deserialize(deserializer)?;
+        RedditType::from_str(s.as_str()).map_err(de::Error::custom)
+    }
+}
+
+impl RedditType {
+    pub fn get_id(&self) -> String {
+        return match self {
+            RedditType::Comment => { "t1".to_string() }
+            RedditType::Account => { "t2".to_string() }
+            RedditType::Link => { "t3".to_string() }
+            RedditType::Message => { "t4".to_string() }
+            RedditType::Subreddit => { "t5".to_string() }
+            RedditType::Award => { "t6".to_string() }
+        };
+    }
+}
+
+impl FromStr for RedditType {
+    type Err = APIError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "t1" => Ok(RedditType::Comment),
+            "t2" => Ok(RedditType::Account),
+            "t3" => Ok(RedditType::Link),
+            "t4" => { Ok(RedditType::Message) }
+            "t5" => Ok(RedditType::Subreddit),
+            "t6" => { Ok(RedditType::Message) }
+            _ => Err(APIError::Custom("Invalid RedditType".to_string())),
+        }
+    }
+}
+
+pub struct FullName {
+    pub reddit_type: RedditType,
+    pub id: String,
+}
+
+impl<'de> Deserialize<'de> for FullName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        let s = String::deserialize(deserializer)?;
+        FullName::from_str(s.as_str()).map_err(de::Error::custom)
+    }
+}
+
+impl FromStr for FullName {
+    type Err = APIError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let split = s.split("_").collect::<Vec<&str>>();
+        if split.len() == 1 {
+            // Yes, it is always a good time to make a monty python joke.
+            return Err(APIError::Custom("Then shalt thou count to two, no more, no less. Two shall be the number thou shalt count, and the number of the counting shall be two.".to_string()));
+        }
+        return Ok(FullName {
+            reddit_type: RedditType::from_str(split.get(0).unwrap()).unwrap(),
+            id: split.get(1).unwrap().to_string(),
+        });
+    }
+}
+
+impl Display for FullName {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}_{}", self.reddit_type.get_id(), self.id)
     }
 }

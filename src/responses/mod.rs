@@ -6,12 +6,14 @@ use crate::responses::comments::Comment;
 use crate::responses::submission::Submission;
 use crate::responses::subreddit::AboutSubreddit;
 use crate::responses::user::AboutUser;
+use crate::responses::message::Message;
 
 pub mod comments;
 pub mod other;
 pub mod submission;
 pub mod subreddit;
 pub mod user;
+mod message;
 
 /// A Generic Response from Reddit the type is pre determined by API
 #[derive(Deserialize, Debug)]
@@ -38,7 +40,7 @@ impl RedditResponse {
             RedditType::Comment(_) => "t1",
             RedditType::Account(_) => "t2",
             RedditType::Link(_) => "t3",
-            RedditType::Message => "t4",
+            RedditType::Message(_) => "t4",
             RedditType::Subreddit(_) => "t5",
             RedditType::Award => "t6",
         };
@@ -67,7 +69,11 @@ impl<'de> Deserialize<'de> for RedditResponse {
             "t3" => Ok(RedditResponse::new(RedditType::Link(
                 serde_json::from_value(value["data"].clone()).unwrap(),
             ))),
-            //"t4" => { Ok(GenericResponse::new(RedditType::Comment(serde_json::from_str(value["data"].as_str().unwrap()).unwrap()))) }
+            "t4" => {
+                Ok(RedditResponse::new(RedditType::Message(
+                    serde_json::from_value(value["data"].clone()).unwrap(),
+                )))
+            }
             "t5" => Ok(RedditResponse::new(RedditType::Subreddit(
                 serde_json::from_value(value["data"].clone()).unwrap(),
             ))),
@@ -106,7 +112,7 @@ pub enum RedditType {
     /// Submission
     Link(Submission),
     /// TODO
-    Message,
+    Message(Message),
     /// About Subreddit
     Subreddit(AboutSubreddit),
     /// TODO

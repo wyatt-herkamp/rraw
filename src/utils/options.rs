@@ -11,24 +11,29 @@ pub struct FeedOption {
 
 impl FeedOption {
     ///Returns the URL extension for the request
-    pub fn url(self) -> String {
+    pub fn url(&self) -> String {
         let mut url = String::new();
-        if let Some(after) = self.after {
+        if let Some(after) = &self.after {
             url.push_str(&mut format!("&after={}", after));
         }
-        if let Some(before) = self.before {
+        if let Some(before) = &self.before {
             url.push_str(&mut format!("&before={}", before));
         }
 
-        if let Some(count) = self.count {
+        if let Some(count) = &self.count {
             url.push_str(&mut format!("&count={}", count));
         }
 
-        if let Some(period) = self.period {
+        if let Some(period) = &self.period {
             url.push_str(&mut format!("&t={}", period.get_string()));
         }
         return url;
     }
+    pub fn extend(&self, value: &mut String){
+        value.push_str("?");
+        value.push_str(self.url().as_str());
+    }
+
 }
 
 ///Time Period for the request
