@@ -1,8 +1,6 @@
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
-
-use crate::responses::{GenericListing, GenericResponse};
-use serde::de::Error;
+use crate::responses::GenericListing;
 
 #[derive(Debug, Deserialize)]
 pub struct Submission {
@@ -29,8 +27,6 @@ pub struct Submission {
     pub distinguished: Option<String>,
 }
 
-
-
 /// The response from an add friend request
 #[derive(Debug, Deserialize)]
 pub struct Friend {
@@ -50,7 +46,6 @@ pub struct Moderator {
     pub mod_permissions: Vec<String>,
 }
 
-
 pub type Moderators = GenericListing<Moderator>;
 
 #[derive(Debug, Deserialize)]
@@ -60,7 +55,5 @@ pub struct Contributor {
     pub rel_id: Option<String>,
     pub date: u64,
 }
-
-
 
 pub type Contributors = GenericListing<Contributor>;

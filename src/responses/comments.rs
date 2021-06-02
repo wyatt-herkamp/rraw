@@ -1,5 +1,4 @@
-use serde::{Deserialize, Deserializer};
-use serde::de::Error;
+use serde::Deserialize;
 
 use crate::responses::GenericResponse;
 
@@ -23,6 +22,5 @@ pub struct Comment {
     pub stickied: Option<bool>,
     pub ups: Option<i32>,
 }
-
 
 pub type Comments = GenericResponse<Comment>;

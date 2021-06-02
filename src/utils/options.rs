@@ -29,11 +29,10 @@ impl FeedOption {
         }
         return url;
     }
-    pub fn extend(&self, value: &mut String){
+    pub fn extend(&self, value: &mut String) {
         value.push_str("?");
         value.push_str(self.url().as_str());
     }
-
 }
 
 ///Time Period for the request

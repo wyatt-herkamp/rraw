@@ -1,10 +1,10 @@
 mod auth;
 mod me;
+mod message;
 mod responses;
 mod subreddit;
 mod user;
 mod utils;
-mod message;
 
 #[cfg(test)]
 mod tests {
@@ -24,14 +24,13 @@ mod tests {
             AnonymousAuthenticator::new(),
             "async_rawr test (by u/KingTuxWH)".to_string(),
         )
-            .await
-            .unwrap();
+        .await
+        .unwrap();
         let subreddit = me.subreddit("memes".to_string());
         let x = subreddit.about().await;
         let subreddit = x.unwrap();
         println!("{}", subreddit.data.title.unwrap());
     }
-
 
     #[tokio::test]
     async fn user_saved() {
@@ -42,10 +41,7 @@ mod tests {
             std::env::var("REDDIT_USER").unwrap().as_str(),
             std::env::var("PASSWORD").unwrap().as_str(),
         );
-        let me = Me::login(
-            arc,
-            "async_rawr test (by u/KingTuxWH)".to_string(),
-        )
+        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
             .await
             .unwrap();
         let user = me.user("KingTuxWH".to_string());
@@ -72,10 +68,7 @@ mod tests {
             std::env::var("REDDIT_USER").unwrap().as_str(),
             std::env::var("PASSWORD").unwrap().as_str(),
         );
-        let me = Me::login(
-            arc,
-            "async_rawr test (by u/KingTuxWH)".to_string(),
-        )
+        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
             .await
             .unwrap();
         let inbox = me.inbox();
@@ -84,12 +77,12 @@ mod tests {
                 Comment(c) => {
                     println!("Comment {:?}", c.name);
                 }
-                RedditType::Account(a) => {}
-                Link(l) => {}
+                RedditType::Account(_a) => {}
+                Link(_l) => {}
                 RedditType::Message(m) => {
                     println!("Message {:?}", m.name);
                 }
-                RedditType::Subreddit(s) => {}
+                RedditType::Subreddit(_s) => {}
                 RedditType::Award => {}
             }
         }
@@ -104,10 +97,7 @@ mod tests {
             std::env::var("REDDIT_USER").unwrap().as_str(),
             std::env::var("PASSWORD").unwrap().as_str(),
         );
-        let me = Me::login(
-            arc,
-            "async_rawr test (by u/KingTuxWH)".to_string(),
-        )
+        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
             .await
             .unwrap();
         let inbox = me.inbox();
@@ -127,14 +117,13 @@ mod tests {
             std::env::var("REDDIT_USER").unwrap().as_str(),
             std::env::var("PASSWORD").unwrap().as_str(),
         );
-        let me = Me::login(
-            arc,
-            "async_rawr test (by u/KingTuxWH)".to_string(),
-        )
+        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
             .await
             .unwrap();
         let inbox = me.inbox();
-        inbox.block_author(FullName::from_str("t2_a3bjd54v").unwrap()).await;
+        inbox
+            .block_author(FullName::from_str("t2_a3bjd54v").unwrap())
+            .await;
     }
 
     #[tokio::test]
@@ -143,8 +132,8 @@ mod tests {
             AnonymousAuthenticator::new(),
             "async_rawr test (by u/KingTuxWH)".to_string(),
         )
-            .await
-            .unwrap();
+        .await
+        .unwrap();
         let user = me.user("KingTuxWH".to_string());
         let response = user.about().await.unwrap();
         println!("{}", response.data.name);

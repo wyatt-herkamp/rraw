@@ -3,17 +3,17 @@ pub use serde::Deserialize;
 use serde::Deserializer;
 
 use crate::responses::comments::Comment;
+use crate::responses::message::Message;
 use crate::responses::submission::Submission;
 use crate::responses::subreddit::AboutSubreddit;
 use crate::responses::user::AboutUser;
-use crate::responses::message::Message;
 
 pub mod comments;
+mod message;
 pub mod other;
 pub mod submission;
 pub mod subreddit;
 pub mod user;
-mod message;
 
 /// A Generic Response from Reddit the type is pre determined by API
 #[derive(Deserialize, Debug)]
@@ -31,7 +31,6 @@ pub struct RedditResponse {
     /// Data response
     pub data: RedditType,
 }
-
 
 impl RedditResponse {
     /// Creates a new Reddit Response for internal use
@@ -53,8 +52,8 @@ impl RedditResponse {
 
 impl<'de> Deserialize<'de> for RedditResponse {
     fn deserialize<D>(deserializer: D) -> Result<RedditResponse, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
 
@@ -69,11 +68,9 @@ impl<'de> Deserialize<'de> for RedditResponse {
             "t3" => Ok(RedditResponse::new(RedditType::Link(
                 serde_json::from_value(value["data"].clone()).unwrap(),
             ))),
-            "t4" => {
-                Ok(RedditResponse::new(RedditType::Message(
-                    serde_json::from_value(value["data"].clone()).unwrap(),
-                )))
-            }
+            "t4" => Ok(RedditResponse::new(RedditType::Message(
+                serde_json::from_value(value["data"].clone()).unwrap(),
+            ))),
             "t5" => Ok(RedditResponse::new(RedditType::Subreddit(
                 serde_json::from_value(value["data"].clone()).unwrap(),
             ))),
@@ -82,7 +79,6 @@ impl<'de> Deserialize<'de> for RedditResponse {
         }
     }
 }
-
 
 #[derive(Deserialize, Debug)]
 /// The Listing API for async rawr

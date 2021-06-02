@@ -1,8 +1,6 @@
 use crate::responses::{GenericListing, GenericResponse};
-use serde::de::Error;
-pub use serde::Deserialize;
-use serde::Deserializer;
 
+pub use serde::Deserialize;
 
 ///About Data for the User
 #[derive(Deserialize, Debug)]

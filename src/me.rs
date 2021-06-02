@@ -1,12 +1,12 @@
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use reqwest::{Body, Client, Response};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
-use serde::{de, Deserialize, Deserializer};
+use reqwest::{Body, Client, Response};
 use serde::de::DeserializeOwned;
+use serde::{de, Deserialize, Deserializer};
 
 use crate::auth::Auth;
 use crate::message::Inbox;
@@ -49,9 +49,7 @@ impl Me {
     }
     /// Inbox
     pub fn inbox(&self) -> Inbox {
-        Inbox {
-            me: self
-        }
+        Inbox { me: self }
     }
     /// Creates a user object. However, this will not tell you if the user exists.
     pub fn user(&self, name: String) -> User {
@@ -184,7 +182,8 @@ pub enum RedditType {
 
 impl<'de> Deserialize<'de> for RedditType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         RedditType::from_str(s.as_str()).map_err(de::Error::custom)
@@ -194,12 +193,12 @@ impl<'de> Deserialize<'de> for RedditType {
 impl RedditType {
     pub fn get_id(&self) -> String {
         return match self {
-            RedditType::Comment => { "t1".to_string() }
-            RedditType::Account => { "t2".to_string() }
-            RedditType::Link => { "t3".to_string() }
-            RedditType::Message => { "t4".to_string() }
-            RedditType::Subreddit => { "t5".to_string() }
-            RedditType::Award => { "t6".to_string() }
+            RedditType::Comment => "t1".to_string(),
+            RedditType::Account => "t2".to_string(),
+            RedditType::Link => "t3".to_string(),
+            RedditType::Message => "t4".to_string(),
+            RedditType::Subreddit => "t5".to_string(),
+            RedditType::Award => "t6".to_string(),
         };
     }
 }
@@ -212,9 +211,9 @@ impl FromStr for RedditType {
             "t1" => Ok(RedditType::Comment),
             "t2" => Ok(RedditType::Account),
             "t3" => Ok(RedditType::Link),
-            "t4" => { Ok(RedditType::Message) }
+            "t4" => Ok(RedditType::Message),
             "t5" => Ok(RedditType::Subreddit),
-            "t6" => { Ok(RedditType::Message) }
+            "t6" => Ok(RedditType::Message),
             _ => Err(APIError::Custom("Invalid RedditType".to_string())),
         }
     }
@@ -227,7 +226,8 @@ pub struct FullName {
 
 impl<'de> Deserialize<'de> for FullName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         FullName::from_str(s.as_str()).map_err(de::Error::custom)

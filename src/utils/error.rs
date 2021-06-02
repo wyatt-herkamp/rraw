@@ -30,9 +30,7 @@ impl Error for APIError {
                 "The JSON sent by Reddit did not match what new_rawr was expecting"
             }
             APIError::ExpiredToken => "ExpiredToken",
-            APIError::Custom(s) => {
-                s.as_str()
-            }
+            APIError::Custom(s) => s.as_str(),
             _ => "This error should not have occurred. Please file a bug",
         }
     }

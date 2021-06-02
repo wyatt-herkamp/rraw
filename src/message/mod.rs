@@ -5,8 +5,8 @@ use reqwest::Body;
 use serde_json::Value;
 
 use crate::me::{FullName, Me};
-use crate::responses::RedditListing;
 use crate::responses::submission::Friend;
+use crate::responses::RedditListing;
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 
@@ -24,7 +24,11 @@ impl<'a> Inbox<'a> {
 
         self.me.post_json::<Friend>(&*string, true, body).await
     }
-    pub async fn get_messages(&self, where_message: Option<WhereMessage>, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
+    pub async fn get_messages(
+        &self,
+        where_message: Option<WhereMessage>,
+        feed: Option<FeedOption>,
+    ) -> Result<RedditListing, APIError> {
         let mut string = format!("/message/{}", where_message.unwrap_or(WhereMessage::Inbox));
         println!("{}", &string);
         if let Some(f) = feed {
@@ -32,8 +36,17 @@ impl<'a> Inbox<'a> {
         }
         self.me.get_json::<RedditListing>(&*string, true).await
     }
-    pub async fn compose(&self, recipient: String, subject: String, body: String, subreddit: Option<String>) -> Result<Value, APIError> {
-        let mut string = format!("api_type=json&subject={}&text={}&to={}", subject, body, recipient);
+    pub async fn compose(
+        &self,
+        recipient: String,
+        subject: String,
+        body: String,
+        subreddit: Option<String>,
+    ) -> Result<Value, APIError> {
+        let mut string = format!(
+            "api_type=json&subject={}&text={}&to={}",
+            subject, body, recipient
+        );
         if let Some(sr) = subreddit {
             string.push_str(format!("&from_sr={}", sr).as_str());
         }
@@ -48,13 +61,12 @@ pub enum WhereMessage {
     SENT,
 }
 
-
 impl Display for WhereMessage {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let string = match self {
-            WhereMessage::Inbox => { "inbox" }
-            WhereMessage::Unread => { "unread" }
-            WhereMessage::SENT => { "sent" }
+            WhereMessage::Inbox => "inbox",
+            WhereMessage::Unread => "unread",
+            WhereMessage::SENT => "sent",
         };
         write!(f, "{}", string)
     }

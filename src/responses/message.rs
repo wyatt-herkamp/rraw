@@ -1,7 +1,7 @@
-use serde::{Deserialize};
+use serde::Deserialize;
 use serde_json::Value;
 #[derive(Deserialize, Debug)]
-pub struct Message{
+pub struct Message {
     pub associated_awarding_id: Option<Value>,
     pub author: Option<String>,
     pub author_fullname: Option<Value>,
@@ -28,6 +28,4 @@ pub struct Message{
     #[serde(rename(deserialize = "type"))]
     pub type_: Option<String>,
     pub was_comment: Option<bool>,
-
-
 }
