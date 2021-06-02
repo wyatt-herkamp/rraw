@@ -4,10 +4,10 @@ version = "0.1.0"
 authors = ["Wyatt J Herkamp <wherkamp@kingtux.me>"]
 edition = "2018"
 license = "MIT"
-repository = "https://github.com/wherkamp/async-rawr"
+repository = "https://github.com/wherkamp/rraw"
 keywords = ["Reddit", "Async"]
 categories = ["api-bindings"]
-description = "An async Rust API Wrapper for Reddit"
+description = "An async Rust Reddit API Wrapper"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
