@@ -24,7 +24,7 @@ impl<'a> Subreddit<'a> {
     ///  Gets the about info the Subreddit
     pub async fn about(&self) -> Result<SubredditResponse, APIError> {
         let string = format!("/r/{}/about.json", self.name.clone());
-        return self.me.get_json::<SubredditResponse>(&*string, false).await;
+        return self.me.get_json::<SubredditResponse>(&*string, self.me.oauth).await;
     }
 
     /// Gets the contributors for the Subreddit

@@ -87,7 +87,20 @@ mod tests {
             }
         }
     }
-
+    #[tokio::test]
+    async fn hidden_sub() {
+        dotenv::dotenv().ok();
+        let arc = PasswordAuthenticator::new(
+            std::env::var("CLIENT_KEY").unwrap().as_str(),
+            std::env::var("CLIENT_SECRET").unwrap().as_str(),
+            std::env::var("REDDIT_USER").unwrap().as_str(),
+            std::env::var("PASSWORD").unwrap().as_str(),
+        );
+        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
+            .await
+            .unwrap();
+        let response = me.subreddit("RedditNobility".to_string()).about().await.unwrap();
+    }
     #[tokio::test]
     async fn test_send() {
         dotenv::dotenv().ok();

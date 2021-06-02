@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc};
 
 use reqwest::{Body, Client, Response};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
@@ -16,6 +16,7 @@ use crate::subreddit::Subreddit;
 use crate::user::User;
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
+use tokio::sync::{Mutex, MutexGuard};
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 
@@ -23,6 +24,7 @@ pub struct Me {
     auth: Arc<Mutex<Box<dyn Authenticator+ Send>>>,
     client: Client,
     user_agent: String,
+    pub oauth: bool
 }
 
 impl Me {
@@ -32,16 +34,20 @@ impl Me {
         user_agent: String,
     ) -> Result<Me, APIError> {
         let client = Client::new();
-        let _x = auth.lock().unwrap().login(&client, &user_agent).await;
+        let arc = auth.clone();
+        let mut guard = arc.lock().await;
+        let b = guard.oauth();
+        let _x = guard.login(&client, &user_agent).await;
         Ok(Me {
             auth,
             client,
             user_agent,
+            oauth:b
         })
     }
     /// Gets the authenticator. Internal use
-    pub fn get_authenticator(&self) -> MutexGuard<Box<dyn Authenticator + 'static+ Send>> {
-        self.auth.lock().unwrap()
+    pub async fn get_authenticator(&self) -> MutexGuard<'_, Box<dyn Authenticator + 'static+ Send>> {
+        self.auth.lock().await
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
     pub fn subreddit(&self, name: String) -> Subreddit {
@@ -57,7 +63,7 @@ impl Me {
     }
     /// Makes a get request with Reqwest response
     pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, reqwest::Error> {
-        let mut guard = self.get_authenticator();
+        let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
             guard.login(&self.client, self.user_agent.as_str()).await;
         }
@@ -68,6 +74,9 @@ impl Me {
             HeaderValue::from_str(&*self.user_agent).unwrap(),
         );
         guard.headers(&mut headers);
+        for x in &headers {
+            println!("{:?}", x);
+        }
         self.client.get(string).headers(headers).send().await
     }
     /// Makes a post request with Reqwest response
@@ -77,7 +86,7 @@ impl Me {
         oauth: bool,
         body: Body,
     ) -> Result<Response, reqwest::Error> {
-        let mut guard = self.get_authenticator();
+        let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
             guard.login(&self.client, self.user_agent.as_str()).await;
         }

@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use async_trait::async_trait;
@@ -7,6 +7,7 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue, USER_
 
 use crate::responses::other::TokenResponseData;
 use crate::utils::error::APIError;
+use tokio::sync::Mutex;
 
 #[async_trait]
 pub trait Authenticator {
