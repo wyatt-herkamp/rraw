@@ -3,12 +3,12 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use reqwest::{Body, Client, Response};
-use serde::de::DeserializeOwned;
+use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use serde::{de, Deserialize, Deserializer};
+use serde::de::DeserializeOwned;
 
-use crate::auth::Auth;
+use crate::auth::Authenticator;
 use crate::message::Inbox;
 use crate::responses::subreddit::Subreddits;
 use crate::responses::user::Users;
@@ -20,7 +20,7 @@ use crate::utils::options::FeedOption;
 /// This is who you are. This is your identity and you access point to the Reddit API
 
 pub struct Me {
-    auth: Arc<Mutex<Box<dyn Auth>>>,
+    auth: Arc<Mutex<Box<dyn Authenticator>>>,
     client: Client,
     user_agent: String,
 }
@@ -28,7 +28,7 @@ pub struct Me {
 impl Me {
     /// Logs into Reddit and Returns a Me
     pub async fn login(
-        auth: Arc<Mutex<Box<dyn Auth>>>,
+        auth: Arc<Mutex<Box<dyn Authenticator>>>,
         user_agent: String,
     ) -> Result<Me, APIError> {
         let client = Client::new();
@@ -40,7 +40,7 @@ impl Me {
         })
     }
     /// Gets the authenticator. Internal use
-    pub fn get_authenticator(&self) -> MutexGuard<Box<dyn Auth + 'static>> {
+    pub fn get_authenticator(&self) -> MutexGuard<Box<dyn Authenticator + 'static>> {
         self.auth.lock().unwrap()
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
@@ -57,13 +57,17 @@ impl Me {
     }
     /// Makes a get request with Reqwest response
     pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, reqwest::Error> {
+        let mut guard = self.get_authenticator();
+        if guard.needs_token_refresh() {
+            guard.login(&self.client, self.user_agent.as_str()).await;
+        }
         let string = self.build_url(url, oauth);
         let mut headers = HeaderMap::new();
         headers.insert(
             USER_AGENT,
             HeaderValue::from_str(&*self.user_agent).unwrap(),
         );
-        self.get_authenticator().headers(&mut headers);
+        guard.headers(&mut headers);
         self.client.get(string).headers(headers).send().await
     }
     /// Makes a post request with Reqwest response
@@ -73,13 +77,17 @@ impl Me {
         oauth: bool,
         body: Body,
     ) -> Result<Response, reqwest::Error> {
+        let mut guard = self.get_authenticator();
+        if guard.needs_token_refresh() {
+            guard.login(&self.client, self.user_agent.as_str()).await;
+        }
         let string = self.build_url(url, oauth);
         let mut headers = HeaderMap::new();
         headers.insert(
             USER_AGENT,
             HeaderValue::from_str(&*self.user_agent).unwrap(),
         );
-        self.get_authenticator().headers(&mut headers);
+        guard.headers(&mut headers);
         self.client
             .post(string)
             .body(body)
@@ -182,8 +190,8 @@ pub enum RedditType {
 
 impl<'de> Deserialize<'de> for RedditType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         RedditType::from_str(s.as_str()).map_err(de::Error::custom)
@@ -226,8 +234,8 @@ pub struct FullName {
 
 impl<'de> Deserialize<'de> for FullName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         FullName::from_str(s.as_str()).map_err(de::Error::custom)
