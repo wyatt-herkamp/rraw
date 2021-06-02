@@ -8,14 +8,15 @@ mod message;
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
+    use serde_json::Value;
     use tokio;
 
     use crate::auth::{AnonymousAuthenticator, PasswordAuthenticator};
-    use crate::me::{Me, FullName};
+    use crate::me::{FullName, Me};
     use crate::responses::RedditType;
     use crate::responses::RedditType::{Comment, Link};
-    use serde_json::Value;
-    use std::str::FromStr;
 
     #[tokio::test]
     async fn anon_subreddit_tests() {
@@ -61,6 +62,7 @@ mod tests {
             }
         }
     }
+
     #[tokio::test]
     async fn test_inbox() {
         dotenv::dotenv().ok();
@@ -92,6 +94,30 @@ mod tests {
             }
         }
     }
+
+    #[tokio::test]
+    async fn test_send() {
+        dotenv::dotenv().ok();
+        let arc = PasswordAuthenticator::new(
+            std::env::var("CLIENT_KEY").unwrap().as_str(),
+            std::env::var("CLIENT_SECRET").unwrap().as_str(),
+            std::env::var("REDDIT_USER").unwrap().as_str(),
+            std::env::var("PASSWORD").unwrap().as_str(),
+        );
+        let me = Me::login(
+            arc,
+            "async_rawr test (by u/KingTuxWH)".to_string(),
+        )
+            .await
+            .unwrap();
+        let inbox = me.inbox();
+        let result = inbox.compose("LordPenguin42".to_string(),
+                                   "Test from Async Rawr".to_string(),
+                                   "I don’t want to talk to you no more, you empty-headed animal-food-trough wiper. I fart in your general direction. Your mother was a hamster, and your father smelt of elderberries.".to_string(),
+                                   Some("new_rawr".to_string())).await;
+        my_loop(result.unwrap().as_object().unwrap());
+    }
+
     #[tokio::test]
     async fn test_block() {
         dotenv::dotenv().ok();
@@ -108,7 +134,7 @@ mod tests {
             .await
             .unwrap();
         let inbox = me.inbox();
-       inbox.block_author(FullName::from_str("t2_a3bjd54v").unwrap()).await;
+        inbox.block_author(FullName::from_str("t2_a3bjd54v").unwrap()).await;
     }
 
     #[tokio::test]
