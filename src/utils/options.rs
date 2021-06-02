@@ -1,3 +1,6 @@
+use core::fmt;
+use std::fmt::{Display, Formatter};
+
 pub use serde::Serialize;
 
 ///A simple object to let you set informationons about the listing you are getting
@@ -57,5 +60,26 @@ impl TimePeriod {
             TimePeriod::Year => "year",
             TimePeriod::AllTime => "all",
         }
+    }
+}
+
+/// FriendType
+pub enum FriendType {
+    /// Contributor
+    Contributor,
+    /// Moderator
+    Moderator,
+    /// This exist if the reddit api changes in the future or I am missing features
+    Custom(String),
+}
+
+impl Display for FriendType {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let string = match self {
+            FriendType::Contributor => { "contributor" }
+            FriendType::Moderator => { "moderator" }
+            FriendType::Custom(str) => { str.as_str() }
+        };
+        write!(f, "{}", string)
     }
 }

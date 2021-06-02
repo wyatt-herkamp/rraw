@@ -5,8 +5,8 @@ use reqwest::Body;
 use serde_json::Value;
 
 use crate::me::{FullName, Me};
-use crate::responses::submission::Friend;
 use crate::responses::RedditListing;
+use crate::responses::submission::Friend;
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 
@@ -24,6 +24,7 @@ impl<'a> Inbox<'a> {
 
         self.me.post_json::<Friend>(&*string, true, body).await
     }
+    /// Gets the Messages. Default for where_message is Inbox
     pub async fn get_messages(
         &self,
         where_message: Option<WhereMessage>,
@@ -36,6 +37,7 @@ impl<'a> Inbox<'a> {
         }
         self.me.get_json::<RedditListing>(&*string, true).await
     }
+    /// Composes a message.
     pub async fn compose(
         &self,
         recipient: String,
@@ -55,9 +57,13 @@ impl<'a> Inbox<'a> {
     }
 }
 
+/// What Inbox you want to look at
 pub enum WhereMessage {
+    /// Everything
     Inbox,
+    /// unread
     Unread,
+    /// Sent
     SENT,
 }
 
