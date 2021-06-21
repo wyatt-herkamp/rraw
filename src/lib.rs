@@ -31,7 +31,7 @@ mod tests {
         let subreddit = x.unwrap();
         println!("{}", subreddit.data.title.unwrap());
     }
-
+    #[ignore]
     #[tokio::test]
     async fn user_saved() {
         dotenv::dotenv().ok();
@@ -58,7 +58,7 @@ mod tests {
             }
         }
     }
-
+    #[ignore]
     #[tokio::test]
     async fn test_inbox() {
         dotenv::dotenv().ok();
@@ -87,6 +87,7 @@ mod tests {
             }
         }
     }
+    #[ignore]
     #[tokio::test]
     async fn hidden_sub() {
         dotenv::dotenv().ok();
@@ -101,6 +102,7 @@ mod tests {
             .unwrap();
         let response = me.subreddit("RedditNobility".to_string()).about().await.unwrap();
     }
+    #[ignore]
     #[tokio::test]
     async fn test_send() {
         dotenv::dotenv().ok();
@@ -120,7 +122,7 @@ mod tests {
                                    Some("new_rawr".to_string())).await;
         my_loop(result.unwrap().as_object().unwrap());
     }
-
+    #[ignore]
     #[tokio::test]
     async fn test_block() {
         dotenv::dotenv().ok();
