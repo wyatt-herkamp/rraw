@@ -2,6 +2,7 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::{Arc};
+use log::trace;
 
 use reqwest::{Body, Client, Response};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
@@ -21,16 +22,16 @@ use tokio::sync::{Mutex, MutexGuard};
 /// This is who you are. This is your identity and you access point to the Reddit API
 
 pub struct Me {
-    auth: Arc<Mutex<Box<dyn Authenticator+ Send>>>,
+    auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
     client: Client,
     user_agent: String,
-    pub oauth: bool
+    pub oauth: bool,
 }
 
 impl Me {
     /// Logs into Reddit and Returns a Me
     pub async fn login(
-        auth: Arc<Mutex<Box<dyn Authenticator+ Send>>>,
+        auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
         user_agent: String,
     ) -> Result<Me, APIError> {
         let client = Client::new();
@@ -42,11 +43,11 @@ impl Me {
             auth,
             client,
             user_agent,
-            oauth:b
+            oauth: b,
         })
     }
     /// Gets the authenticator. Internal use
-    pub async fn get_authenticator(&self) -> MutexGuard<'_, Box<dyn Authenticator + 'static+ Send>> {
+    pub async fn get_authenticator(&self) -> MutexGuard<'_, Box<dyn Authenticator + 'static + Send>> {
         self.auth.lock().await
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
@@ -67,7 +68,7 @@ impl Me {
         if guard.needs_token_refresh() {
             guard.login(&self.client, self.user_agent.as_str()).await;
         }
-        let string = self.build_url(url, oauth);
+        let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
         headers.insert(
             USER_AGENT,
@@ -87,7 +88,7 @@ impl Me {
         if guard.needs_token_refresh() {
             guard.login(&self.client, self.user_agent.as_str()).await;
         }
-        let string = self.build_url(url, oauth);
+        let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
         headers.insert(
             USER_AGENT,
@@ -121,8 +122,13 @@ impl Me {
         return Me::respond::<T>(x).await;
     }
     /// Builds a URL
-    pub fn build_url(&self, dest: &str, oauth_required: bool) -> String {
-        let stem = if oauth_required {
+    pub fn build_url(&self, dest: &str, oauth_required: bool, oauth_supported: bool) -> String {
+        let stem = if oauth_required || oauth_supported {
+            // All endpoints support OAuth, but some do not support the regular endpoint. If we are
+            // required to use it or support it, we will use it.
+            assert!(oauth_supported,
+                    "OAuth is required to use this endpoint, but your authenticator does not \
+                     support it.");
             "https://oauth.reddit.com"
         } else {
             "https://api.reddit.com"
@@ -139,9 +145,11 @@ impl Me {
                 return Err(APIError::HTTPError(code));
             }
 
-            let value = response.json::<T>().await;
+            let value = response.text().await;
             if let Ok(about) = value {
-                return Ok(about);
+                trace!("{}",&about);
+                let x: T = serde_json::from_str(about.as_str())?;
+                return Ok(x);
             } else if let Err(response) = value {
                 return Err(APIError::from(response));
             }

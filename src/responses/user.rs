@@ -22,13 +22,13 @@ pub struct AboutUser {
     /// IDK
     pub has_external_account: Option<bool>,
     /// I am guessing location
-    pub pref_geopopular: Option<bool>,
+    pub pref_geopopular: Option<String>,
     /// IDK
     pub pref_show_trending: Option<bool>,
     /// IDK
     pub pref_show_presence: Option<bool>,
     /// IDK
-    pub gold_expiration: Option<bool>,
+    pub gold_expiration: Option<i64>,
     /// I am guessing premium?
     pub has_gold_subscription: Option<bool>,
     /// IDK
@@ -96,7 +96,7 @@ pub struct AboutUser {
     /// total_karma
     pub total_karma: u64,
     ///inbox_count
-    pub inbox_count: Option<bool>,
+    pub inbox_count: Option<i64>,
     /// pref_top_karma_subreddits
     pub pref_top_karma_subreddits: Option<bool>,
     /// has_mail
@@ -104,7 +104,7 @@ pub struct AboutUser {
     /// pref_show_snoovatar
     pub pref_show_snoovatar: Option<bool>,
     /// pref_clickgadget
-    pub pref_clickgadget: Option<bool>,
+    pub pref_clickgadget: Option<i64>,
     /// created
     pub created: f64,
     /// gold_creddits
