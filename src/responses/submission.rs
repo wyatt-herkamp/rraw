@@ -22,6 +22,7 @@ pub struct Submission {
     pub name: String,
     pub created: f64,
     pub url: Option<String>,
+    pub permalink: String,
     pub title: String,
     pub created_utc: f64,
     pub distinguished: Option<String>,
