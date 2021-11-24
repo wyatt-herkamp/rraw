@@ -19,6 +19,7 @@ pub struct Submission {
     pub ups: f64,
     pub stickied: bool,
     pub locked: bool,
+    pub over_18: bool,
     pub name: String,
     pub created: f64,
     pub url: Option<String>,
