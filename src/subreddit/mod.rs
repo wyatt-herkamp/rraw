@@ -52,14 +52,14 @@ impl<'a> Subreddit<'a> {
     pub async fn add_friend(&self, username: String, typ: FriendType) -> Result<Friend, APIError> {
         let string = format!("/r/{}/api/friend", self.name.clone());
 
-        let body = Body::from(format!("username={}&type={}", username, typ));
+        let body = Body::from(format!("name={}&type={}", username, typ));
         return self.me.post_json::<Friend>(&*string, true, body).await;
     }
     ///  removes a friend from the Subreddit
     pub async fn remove_friend(&self, username: String, typ: FriendType) -> Result<Friend, APIError> {
         let string = format!("/r/{}/api/unfriend", self.name.clone());
 
-        let body = Body::from(format!("username={}&type={}", username, typ));
+        let body = Body::from(format!("name={}&type={}", username, typ));
         return self.me.post_json::<Friend>(&*string, true, body).await;
     }
 }
