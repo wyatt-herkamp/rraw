@@ -51,16 +51,17 @@ impl Me {
         self.auth.lock().await
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
-    pub fn subreddit(&self, name: String) -> Subreddit {
-        Subreddit { me: self, name }
+    pub fn subreddit<T: Into<String>>(&self, name: T) -> Subreddit {
+
+        Subreddit { me: self, name: name.into() }
     }
     /// Inbox
     pub fn inbox(&self) -> Inbox {
         Inbox { me: self }
     }
     /// Creates a user object. However, this will not tell you if the user exists.
-    pub fn user(&self, name: String) -> User {
-        User { me: self, name }
+    pub fn user<T: Into<String>>(&self, name: T) -> User {
+        User { me: self, name: name.into() }
     }
     /// Makes a get request with Reqwest response
     pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, reqwest::Error> {

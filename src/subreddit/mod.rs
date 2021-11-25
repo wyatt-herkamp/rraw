@@ -24,7 +24,7 @@ impl<'a> PartialEq for Subreddit<'a> {
 impl<'a> Subreddit<'a> {
     ///  Gets the about info the Subreddit
     pub async fn about(&self) -> Result<SubredditResponse, APIError> {
-        let string = format!("/r/{}/about.json", self.name.clone());
+        let string = format!("/r/{}/about.json", &self.name);
         return self.me.get_json::<SubredditResponse>(&*string, self.me.oauth).await;
     }
 
@@ -33,7 +33,7 @@ impl<'a> Subreddit<'a> {
         &self,
         feed: Option<FeedOption>,
     ) -> Result<Contributors, APIError> {
-        let mut string = format!("/r/{}/about/contributors.json", self.name.clone());
+        let mut string = format!("/r/{}/about/contributors.json", &self.name);
         if let Some(options) = feed {
             string.push_str("?");
             string.push_str(options.url().as_str());
@@ -42,7 +42,7 @@ impl<'a> Subreddit<'a> {
     }
     /// Gets a List of Moderators for the subreddit
     pub async fn get_moderators(&self, feed: Option<FeedOption>) -> Result<Moderators, APIError> {
-        let mut string = format!("/r/{}/about/moderators.json", self.name.clone());
+        let mut string = format!("/r/{}/about/moderators.json", &self.name);
         if let Some(options) = feed {
             string.push_str("?");
             string.push_str(options.url().as_str());
@@ -52,14 +52,14 @@ impl<'a> Subreddit<'a> {
     /// Adds a friend to the subreddit
     pub async fn add_friend(&self, username: String, typ: FriendType) -> Result<Friend, APIError> {
         trace!("Adding {} to r/{} with type {}", &username,&self.name, &typ);
-        let string = format!("/r/{}/api/friend", self.name.clone());
+        let string = format!("/r/{}/api/friend", &self.name);
 
         let body = Body::from(format!("name={}&type={}", username, typ));
         return self.me.post_json::<Friend>(&*string, true, body).await;
     }
     ///  removes a friend from the Subreddit
     pub async fn remove_friend(&self, username: String, typ: FriendType) -> Result<Friend, APIError> {
-        let string = format!("/r/{}/api/unfriend", self.name.clone());
+        let string = format!("/r/{}/api/unfriend", &self.name);
 
         let body = Body::from(format!("name={}&type={}", username, typ));
         return self.me.post_json::<Friend>(&*string, true, body).await;
