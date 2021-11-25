@@ -12,7 +12,7 @@ pub struct Submission {
     pub id: String,
     pub author: String,
     pub score: f64,
-    pub num_comments: u64,
+    pub num_comments: i64,
     pub thumbnail: String,
     pub subreddit_id: String,
     pub downs: f64,

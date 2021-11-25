@@ -34,7 +34,7 @@ pub struct AboutUser {
     /// IDK
     pub is_sponsor: Option<bool>,
     /// Number of friends. It is always 0. :(
-    pub num_friends: Option<u64>,
+    pub num_friends: Option<i64>,
     /// You can edit names?
     pub can_edit_name: Option<bool>,
     /// Verified
@@ -44,7 +44,7 @@ pub struct AboutUser {
     /// pref_autoplay
     pub pref_autoplay: Option<bool>,
     /// users gold
-    pub coins: Option<u64>,
+    pub coins: Option<i64>,
     /// has_paypal_subscription - Why is this public?
     pub has_paypal_subscription: Option<bool>,
     /// has_subscribed_to_premium
@@ -62,7 +62,7 @@ pub struct AboutUser {
     /// Are they a buzzkill
     pub is_mod: Option<bool>,
     /// awarder_karma
-    pub awarder_karma: u64,
+    pub awarder_karma: i64,
     /// suspension_expiration_utci
     pub suspension_expiration_utc: Option<i64>,
     /// has_verified_email
@@ -82,7 +82,7 @@ pub struct AboutUser {
     ///pref_nightmode
     pub pref_nightmode: Option<bool>,
     /// awardee_karma
-    pub awardee_karma: u64,
+    pub awardee_karma: i64,
     /// hide_from_robots
     pub hide_from_robots: Option<bool>,
     /// password_set
@@ -90,11 +90,11 @@ pub struct AboutUser {
     /// modhash
     pub modhash: Option<bool>,
     /// link_karma
-    pub link_karma: u64,
+    pub link_karma: i64,
     ///force_password_reset
     pub force_password_reset: Option<bool>,
     /// total_karma
-    pub total_karma: u64,
+    pub total_karma: i64,
     ///inbox_count
     pub inbox_count: Option<i64>,
     /// pref_top_karma_subreddits
@@ -108,7 +108,7 @@ pub struct AboutUser {
     /// created
     pub created: f64,
     /// gold_creddits
-    pub gold_creddits: Option<u64>,
+    pub gold_creddits: Option<i64>,
     /// created_utc
     pub created_utc: f64,
     /// has_ios_subscription
@@ -118,7 +118,7 @@ pub struct AboutUser {
     /// in_beta
     pub in_beta: Option<bool>,
     /// comment_karma
-    pub comment_karma: u64,
+    pub comment_karma: i64,
     /// has_subscribed
     pub has_subscribed: Option<bool>,
 }
