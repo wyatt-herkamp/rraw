@@ -1,3 +1,4 @@
+use log::trace;
 use reqwest::Body;
 
 use crate::me::Me;
@@ -50,6 +51,7 @@ impl<'a> Subreddit<'a> {
     }
     /// Adds a friend to the subreddit
     pub async fn add_friend(&self, username: String, typ: FriendType) -> Result<Friend, APIError> {
+        trace!("Adding {} to r/{} with type {}", &username,&self.name, &typ);
         let string = format!("/r/{}/api/friend", self.name.clone());
 
         let body = Body::from(format!("name={}&type={}", username, typ));

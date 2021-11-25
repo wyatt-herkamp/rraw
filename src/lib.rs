@@ -17,6 +17,7 @@ mod tests {
     use crate::me::{FullName, Me};
     use crate::responses::RedditType;
     use crate::responses::RedditType::{Comment, Link};
+    use crate::utils::options::FriendType;
 
     #[tokio::test]
     async fn anon_subreddit_tests() {
@@ -101,6 +102,20 @@ mod tests {
             .await
             .unwrap();
         let response = me.subreddit("RedditNobility".to_string()).about().await.unwrap();
+    }    #[ignore]
+    #[tokio::test]
+    async fn friend() {
+        dotenv::dotenv().ok();
+        let arc = PasswordAuthenticator::new(
+            std::env::var("CLIENT_KEY").unwrap().as_str(),
+            std::env::var("CLIENT_SECRET").unwrap().as_str(),
+            std::env::var("REDDIT_USER").unwrap().as_str(),
+            std::env::var("PASSWORD").unwrap().as_str(),
+        );
+        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
+            .await
+            .unwrap();
+        let response = me.subreddit("RedditNobility".to_string()).add_friend("LordPenguin42".to_string(), FriendType::Contributor).await.unwrap();
     }
     #[ignore]
     #[tokio::test]
