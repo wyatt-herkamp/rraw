@@ -106,11 +106,11 @@ pub struct AboutUser {
     /// pref_clickgadget
     pub pref_clickgadget: Option<i64>,
     /// created
-    pub created:  Option<i64>,
+    pub created:  Option<f64>,
     /// gold_creddits
     pub gold_creddits: Option<i64>,
     /// created_utc
-    pub created_utc:  Option<i64>,
+    pub created_utc:  Option<f64>,
     /// has_ios_subscription
     pub has_ios_subscription: Option<bool>,
     /// pref_show_twitter
