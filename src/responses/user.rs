@@ -12,11 +12,11 @@ pub struct AboutUser {
     /// Reddit Username
     pub name: String,
     /// Is the user an employee? I think
-    pub is_employee: bool,
+    pub is_employee: Option<bool>,
     /// IDK
     pub has_visited_new_profile: Option<bool>,
     /// IDK
-    pub is_friend: bool,
+    pub is_friend: Option<bool>,
     /// IDK
     pub pref_no_profanity: Option<bool>,
     /// IDK
@@ -50,7 +50,7 @@ pub struct AboutUser {
     /// has_subscribed_to_premium
     pub has_subscribed_to_premium: Option<bool>,
     /// id
-    pub id: String,
+    pub id: Option<String>,
     /// has_stripe_subscription
     pub has_stripe_subscription: Option<bool>,
     /// can_create_subreddit
@@ -82,7 +82,7 @@ pub struct AboutUser {
     ///pref_nightmode
     pub pref_nightmode: Option<bool>,
     /// awardee_karma
-    pub awardee_karma: i64,
+    pub awardee_karma:  Option<i64>,
     /// hide_from_robots
     pub hide_from_robots: Option<bool>,
     /// password_set
@@ -90,11 +90,11 @@ pub struct AboutUser {
     /// modhash
     pub modhash: Option<bool>,
     /// link_karma
-    pub link_karma: i64,
+    pub link_karma: Option<i64>,
     ///force_password_reset
     pub force_password_reset: Option<bool>,
     /// total_karma
-    pub total_karma: i64,
+    pub total_karma:  Option<i64>,
     ///inbox_count
     pub inbox_count: Option<i64>,
     /// pref_top_karma_subreddits
@@ -106,11 +106,11 @@ pub struct AboutUser {
     /// pref_clickgadget
     pub pref_clickgadget: Option<i64>,
     /// created
-    pub created: f64,
+    pub created:  Option<i64>,
     /// gold_creddits
     pub gold_creddits: Option<i64>,
     /// created_utc
-    pub created_utc: f64,
+    pub created_utc:  Option<i64>,
     /// has_ios_subscription
     pub has_ios_subscription: Option<bool>,
     /// pref_show_twitter
@@ -118,7 +118,7 @@ pub struct AboutUser {
     /// in_beta
     pub in_beta: Option<bool>,
     /// comment_karma
-    pub comment_karma: i64,
+    pub comment_karma: Option<i64>,
     /// has_subscribed
     pub has_subscribed: Option<bool>,
 }
