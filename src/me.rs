@@ -110,7 +110,8 @@ impl Me {
     ) -> Result<T, APIError> {
         let response = self.get(url, oauth).await?;
         if !response.status().is_success() {
-            return Err(APIError::HTTPError(response.status()))
+            trace!("Bad Response Status {}", response.status().as_u16() );
+            return Err(response.status().into());
         }
         let value = response.text().await?;
         trace!("{}",&value);
@@ -126,7 +127,8 @@ impl Me {
     ) -> Result<T, APIError> {
         let response = self.post(url, oauth, body).await?;
         if !response.status().is_success() {
-            return Err(APIError::HTTPError(response.status()))
+            trace!("Bad Response Status {}", response.status().as_u16() );
+            return Err(response.status().into());
         }
         let value = response.text().await?;
         trace!("{}",&value);
