@@ -52,7 +52,6 @@ impl Me {
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
     pub fn subreddit<T: Into<String>>(&self, name: T) -> Subreddit {
-
         Subreddit { me: self, name: name.into() }
     }
     /// Inbox
@@ -140,25 +139,18 @@ impl Me {
     pub async fn respond<T: DeserializeOwned>(
         result: Result<Response, reqwest::Error>,
     ) -> Result<T, APIError> {
-        if let Ok(response) = result {
-            let code = response.status();
-            if !code.is_success() {
-                return Err(APIError::HTTPError(code));
-            }
-
-            let value = response.text().await;
-            if let Ok(about) = value {
-                trace!("{}",&about);
-                let x: T = serde_json::from_str(about.as_str())?;
-                return Ok(x);
-            } else if let Err(response) = value {
-                return Err(APIError::from(response));
-            }
-        } else if let Err(response) = result {
-            return Err(APIError::from(response));
+        let response = result?;
+        let code = response.status();
+        if !code.is_success() {
+            return Err(APIError::HTTPError(code));
         }
-        return Err(APIError::ExhaustedListing);
+
+        let value = response.text().await?;
+        trace!("{}",&about);
+        let x: T = serde_json::from_str(about.as_str())?;
+        return Ok(x);
     }
+
     /// Searches Reddit for subreddits
     pub async fn search_subreddits(
         &self,
@@ -175,6 +167,7 @@ impl Me {
         }
         self.get_json::<Subreddits>(&*url, false).await
     }
+
     /// Searches Reddit for Users
     pub async fn search_users(
         &self,

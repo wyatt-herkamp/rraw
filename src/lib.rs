@@ -164,7 +164,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let user = me.user("KingTuxWH".to_string());
+        let user = me.user("HoodwinkingGnome".to_string());
         let response = user.about().await.unwrap();
         let submissions = user.submissions(None).await.unwrap();
         let comments = user.comments(None).await.unwrap();
