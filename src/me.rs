@@ -20,7 +20,7 @@ use crate::utils::options::FeedOption;
 use tokio::sync::{Mutex, MutexGuard};
 
 /// This is who you are. This is your identity and you access point to the Reddit API
-
+#[derive(Clone)]
 pub struct Me {
     auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
     client: Client,
