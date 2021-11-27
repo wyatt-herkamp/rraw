@@ -1,3 +1,4 @@
+use log::trace;
 use crate::me::Me;
 use crate::responses::comments::Comments;
 use crate::responses::submission::Submissions;
@@ -21,8 +22,16 @@ impl<'a> PartialEq for User<'a> {
 impl<'a> User<'a> {
     /// Gets the about data for the user
     pub async fn about(&self) -> Result<UserResponse, APIError> {
-        let string = format!("/user/{}/about.json", &self.name);
-        return self.me.get_json::<UserResponse>(&*string, false).await;
+        let url = format!("/user/{}/about.json", &self.name);
+        let response = self.me.get(&url, false).await?;
+        if !response.status().is_success() {
+            trace!("Bad Response Status {}", response.status().as_u16() );
+            return Err(response.status().clone().into());
+        }
+        let value = response.text().await?;
+        trace!("{}",&value);
+        let x: UserResponse = serde_json::from_str(value.as_str())?;
+        return Ok(x);
     }
     /// Comments
     pub async fn comments(&self, feed: Option<FeedOption>) -> Result<Comments, APIError> {
