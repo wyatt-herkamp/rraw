@@ -5,6 +5,7 @@ use crate::responses::submission::Submissions;
 use crate::responses::user::UserResponse;
 use crate::responses::{GenericListing, RedditListing, RedditType};
 use crate::utils::error::APIError;
+use crate::utils::error::APIError::NotFound;
 use crate::utils::options::FeedOption;
 
 /// The User Object for Reddit
@@ -25,8 +26,7 @@ impl<'a> User<'a> {
         let url = format!("/user/{}/about.json", &self.name);
         let response = self.me.get(&url, false).await?;
         if !response.status().is_success() {
-            trace!("Bad Response Status {}", response.status().as_u16() );
-            return Err(response.status().clone().into());
+            return Err(NotFound);
         }
         let value = response.text().await?;
         trace!("{}",&value);
