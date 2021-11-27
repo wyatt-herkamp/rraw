@@ -24,18 +24,6 @@ impl Display for APIError {
 }
 
 impl Error for APIError {
-    fn description(&self) -> &str {
-        match self {
-            APIError::HTTPError(_) => "The API returned a non-success error code",
-            APIError::ReqwestError(_) => "An error occurred while processing the HTTP response",
-            APIError::JSONError(_) => {
-                "The JSON sent by Reddit did not match what new_rawr was expecting"
-            }
-            APIError::ExpiredToken => "ExpiredToken",
-            APIError::Custom(s) => s.as_str(),
-            _ => "This error should not have occurred. Please file a bug",
-        }
-    }
 }
 
 impl From<reqwest::Error> for APIError {
