@@ -146,8 +146,8 @@ impl Me {
         }
 
         let value = response.text().await?;
-        trace!("{}",&about);
-        let x: T = serde_json::from_str(about.as_str())?;
+        trace!("{}",&value);
+        let x: T = serde_json::from_str(value.as_str())?;
         return Ok(x);
     }
 
