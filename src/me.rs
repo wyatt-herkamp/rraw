@@ -108,7 +108,10 @@ impl Me {
         url: &str,
         oauth: bool,
     ) -> Result<T, APIError> {
-        let response= self.get(url, oauth).await?;
+        let response = self.get(url, oauth).await?;
+        if !response.status().is_success() {
+            return Err(APIError::HTTPError(response.status()))
+        }
         let value = response.text().await?;
         trace!("{}",&value);
         let x: T = serde_json::from_str(value.as_str())?;
@@ -122,6 +125,9 @@ impl Me {
         body: Body,
     ) -> Result<T, APIError> {
         let response = self.post(url, oauth, body).await?;
+        if !response.status().is_success() {
+            return Err(APIError::HTTPError(response.status()))
+        }
         let value = response.text().await?;
         trace!("{}",&value);
         let x: T = serde_json::from_str(value.as_str())?;
