@@ -36,8 +36,14 @@ impl Display for APIError {
             APIError::Custom(c) => {
                 write!(f, "RRAW Internal Error! {}", c)
             }
-            c => {
-                write!(f, "RRAW Internal Error! {}", c)
+
+            APIError::ReqwestError(reqwest) => {
+                write!(f, "Reqwest Error! {}", reqwest)
+
+            }
+            APIError::JSONError(serde) => {
+                write!(f, "Serde  Error! {}", serde)
+
             }
         };
     }
