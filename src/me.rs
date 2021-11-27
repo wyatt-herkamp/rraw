@@ -4,7 +4,7 @@ use std::str::FromStr;
 use std::sync::{Arc};
 use log::trace;
 
-use reqwest::{Body, Client, Response};
+use reqwest::{Body, Client, ClientBuilder, Response};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use serde::{de, Deserialize, Deserializer};
 use serde::de::DeserializeOwned;
@@ -34,7 +34,7 @@ impl Me {
         auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
         user_agent: String,
     ) -> Result<Me, APIError> {
-        let client = Client::new();
+        let client = ClientBuilder::new().user_agent(user_agent.clone()).build()?;
         let arc = auth.clone();
         let mut guard = arc.lock().await;
         let b = guard.oauth();
@@ -70,11 +70,8 @@ impl Me {
         }
         let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
-        headers.insert(
-            USER_AGENT,
-            HeaderValue::from_str(&*self.user_agent).unwrap(),
-        );
         guard.headers(&mut headers);
+        drop(guard);
         self.client.get(string).headers(headers).send().await
     }
     /// Makes a post request with Reqwest response
@@ -90,11 +87,8 @@ impl Me {
         }
         let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
-        headers.insert(
-            USER_AGENT,
-            HeaderValue::from_str(&*self.user_agent).unwrap(),
-        );
         guard.headers(&mut headers);
+        drop(guard);
         self.client
             .post(string)
             .body(body)
@@ -111,7 +105,7 @@ impl Me {
         let response = self.get(url, oauth).await?;
         if !response.status().is_success() {
             trace!("Bad Response Status {}", response.status().as_u16() );
-            return Err(response.status().into());
+            return Err(response.status().clone().into());
         }
         let value = response.text().await?;
         trace!("{}",&value);
@@ -128,7 +122,7 @@ impl Me {
         let response = self.post(url, oauth, body).await?;
         if !response.status().is_success() {
             trace!("Bad Response Status {}", response.status().as_u16() );
-            return Err(response.status().into());
+            return Err(response.status().clone().into());
         }
         let value = response.text().await?;
         trace!("{}",&value);
