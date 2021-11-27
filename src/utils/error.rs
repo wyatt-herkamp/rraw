@@ -19,12 +19,31 @@ pub enum APIError {
 
 impl Display for APIError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "Error! {}. ({:?})", self, self)
+        return match self {
+            APIError::ExhaustedListing => {
+                write!(f, "RRAW ExhaustedListing")
+            }
+            HTTPError(http) => {
+                write!(f, "Http Error! {}", http.as_u16())
+            }
+            NotFound => {
+                write!(f, "Not Found")
+            }
+            APIError::ExpiredToken => {
+                write!(f, "Expired Token")
+
+            }
+            APIError::Custom(c) => {
+                write!(f, "RRAW Internal Error! {}", c)
+            }
+            c => {
+                write!(f, "RRAW Internal Error! {}", c)
+            }
+        };
     }
 }
 
-impl Error for APIError {
-}
+impl Error for APIError {}
 
 impl From<reqwest::Error> for APIError {
     fn from(err: reqwest::Error) -> APIError {
@@ -38,8 +57,8 @@ impl From<StatusCode> for APIError {
             StatusCode::NOT_FOUND => {
                 return NotFound;
             }
-            value=>{
-                return HTTPError(value)
+            value => {
+                return HTTPError(value);
             }
         }
     }

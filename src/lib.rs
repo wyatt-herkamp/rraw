@@ -25,13 +25,14 @@ mod tests {
             AnonymousAuthenticator::new(),
             "async_rawr test (by u/KingTuxWH)".to_string(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let subreddit = me.subreddit("memes".to_string());
         let x = subreddit.about().await;
         let subreddit = x.unwrap();
         println!("{}", subreddit.data.title.unwrap());
     }
+
     #[ignore]
     #[tokio::test]
     async fn user_saved() {
@@ -59,6 +60,7 @@ mod tests {
             }
         }
     }
+
     #[ignore]
     #[tokio::test]
     async fn test_inbox() {
@@ -88,6 +90,7 @@ mod tests {
             }
         }
     }
+
     #[ignore]
     #[tokio::test]
     async fn hidden_sub() {
@@ -102,7 +105,9 @@ mod tests {
             .await
             .unwrap();
         let response = me.subreddit("RedditNobility".to_string()).about().await.unwrap();
-    }    #[ignore]
+    }
+
+    #[ignore]
     #[tokio::test]
     async fn friend() {
         dotenv::dotenv().ok();
@@ -117,6 +122,7 @@ mod tests {
             .unwrap();
         let response = me.subreddit("RedditNobility".to_string()).add_friend("LordPenguin42".to_string(), FriendType::Contributor).await.unwrap();
     }
+
     #[ignore]
     #[tokio::test]
     async fn test_send() {
@@ -137,6 +143,7 @@ mod tests {
                                    Some("new_rawr".to_string())).await;
         my_loop(result.unwrap().as_object().unwrap());
     }
+
     #[ignore]
     #[tokio::test]
     async fn test_block() {
@@ -162,10 +169,15 @@ mod tests {
             AnonymousAuthenticator::new(),
             "async_rawr test (by u/KingTuxWH)".to_string(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let user = me.user("HoodwinkingGnome".to_string());
-        let response = user.about().await.unwrap();
+        let result = user.about().await;
+        if let Err(error) = result {
+            println!("{}", error);
+            return;
+        }
+        let response = result.unwrap();
         let submissions = user.submissions(None).await.unwrap();
         let comments = user.comments(None).await.unwrap();
         println!("{}", response.data.name);
