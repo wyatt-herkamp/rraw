@@ -108,8 +108,11 @@ impl Me {
         url: &str,
         oauth: bool,
     ) -> Result<T, APIError> {
-        let x = self.get(url, oauth).await;
-        return Me::respond::<T>(x).await;
+        let response= self.get(url, oauth).await?;
+        let value = response.text().await?;
+        trace!("{}",&value);
+        let x: T = serde_json::from_str(value.as_str())?;
+        return Ok(x);
     }
     /// Makes a post request with JSON response
     pub async fn post_json<T: DeserializeOwned>(
@@ -118,8 +121,11 @@ impl Me {
         oauth: bool,
         body: Body,
     ) -> Result<T, APIError> {
-        let x = self.post(url, oauth, body).await;
-        return Me::respond::<T>(x).await;
+        let response = self.post(url, oauth, body).await?;
+        let value = response.text().await?;
+        trace!("{}",&value);
+        let x: T = serde_json::from_str(value.as_str())?;
+        return Ok(x);
     }
     /// Builds a URL
     pub fn build_url(&self, dest: &str, oauth_required: bool, oauth_supported: bool) -> String {
@@ -135,21 +141,7 @@ impl Me {
         };
         format!("{}{}", stem, dest)
     }
-    /// Handles a Response from Reqwest mainly for internal use
-    pub async fn respond<T: DeserializeOwned>(
-        result: Result<Response, reqwest::Error>,
-    ) -> Result<T, APIError> {
-        let response = result?;
-        let code = response.status();
-        if !code.is_success() {
-            return Err(APIError::HTTPError(code));
-        }
 
-        let value = response.text().await?;
-        trace!("{}",&value);
-        let x: T = serde_json::from_str(value.as_str())?;
-        return Ok(x);
-    }
 
     /// Searches Reddit for subreddits
     pub async fn search_subreddits(
