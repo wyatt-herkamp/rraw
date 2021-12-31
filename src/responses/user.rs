@@ -82,7 +82,7 @@ pub struct AboutUser {
     ///pref_nightmode
     pub pref_nightmode: Option<bool>,
     /// awardee_karma
-    pub awardee_karma:  Option<i64>,
+    pub awardee_karma: Option<i64>,
     /// hide_from_robots
     pub hide_from_robots: Option<bool>,
     /// password_set
@@ -94,7 +94,7 @@ pub struct AboutUser {
     ///force_password_reset
     pub force_password_reset: Option<bool>,
     /// total_karma
-    pub total_karma:  Option<i64>,
+    pub total_karma: Option<i64>,
     ///inbox_count
     pub inbox_count: Option<i64>,
     /// pref_top_karma_subreddits
@@ -106,11 +106,11 @@ pub struct AboutUser {
     /// pref_clickgadget
     pub pref_clickgadget: Option<i64>,
     /// created
-    pub created:  Option<f64>,
+    pub created: Option<f64>,
     /// gold_creddits
     pub gold_creddits: Option<i64>,
     /// created_utc
-    pub created_utc:  Option<f64>,
+    pub created_utc: Option<f64>,
     /// has_ios_subscription
     pub has_ios_subscription: Option<bool>,
     /// pref_show_twitter

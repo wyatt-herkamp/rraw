@@ -19,14 +19,29 @@ mod tests {
     use crate::responses::RedditType::{Comment, Link};
     use crate::utils::options::FriendType;
 
-    #[tokio::test]
-    async fn anon_subreddit_tests() {
-        let me = Me::login(
-            AnonymousAuthenticator::new(),
-            "async_rawr test (by u/KingTuxWH)".to_string(),
-        )
+    async fn create_logged_in_client() -> Me {
+        dotenv::dotenv().ok();
+        let arc = PasswordAuthenticator::new(
+            std::env::var("CLIENT_KEY").unwrap().as_str(),
+            std::env::var("CLIENT_SECRET").unwrap().as_str(),
+            std::env::var("REDDIT_USER").unwrap().as_str(),
+            std::env::var("PASSWORD").unwrap().as_str(),
+        );
+        return Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
             .await
             .unwrap();
+    }
+
+    async fn create_anon_client() -> Me {
+        return Me::login(
+            AnonymousAuthenticator::new(),
+            "async_rawr test (by u/KingTuxWH)".to_string(),
+        ).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn anon_subreddit_tests() {
+        let me = create_anon_client().await;
         let subreddit = me.subreddit("memes".to_string());
         let x = subreddit.about().await;
         let subreddit = x.unwrap();
@@ -36,16 +51,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn user_saved() {
-        dotenv::dotenv().ok();
-        let arc = PasswordAuthenticator::new(
-            std::env::var("CLIENT_KEY").unwrap().as_str(),
-            std::env::var("CLIENT_SECRET").unwrap().as_str(),
-            std::env::var("REDDIT_USER").unwrap().as_str(),
-            std::env::var("PASSWORD").unwrap().as_str(),
-        );
-        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
-            .await
-            .unwrap();
+        let me = create_logged_in_client().await;
         let user = me.user("KingTuxWH".to_string());
         let x = user.saved(None).await.unwrap();
         for x in x.data.children {
@@ -64,16 +70,8 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_inbox() {
-        dotenv::dotenv().ok();
-        let arc = PasswordAuthenticator::new(
-            std::env::var("CLIENT_KEY").unwrap().as_str(),
-            std::env::var("CLIENT_SECRET").unwrap().as_str(),
-            std::env::var("REDDIT_USER").unwrap().as_str(),
-            std::env::var("PASSWORD").unwrap().as_str(),
-        );
-        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
-            .await
-            .unwrap();
+        let me = create_logged_in_client().await;
+
         let inbox = me.inbox();
         for x in inbox.get_messages(None, None).await.unwrap().data.children {
             match x.data {
@@ -94,48 +92,32 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn hidden_sub() {
-        dotenv::dotenv().ok();
-        let arc = PasswordAuthenticator::new(
-            std::env::var("CLIENT_KEY").unwrap().as_str(),
-            std::env::var("CLIENT_SECRET").unwrap().as_str(),
-            std::env::var("REDDIT_USER").unwrap().as_str(),
-            std::env::var("PASSWORD").unwrap().as_str(),
-        );
-        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
+        let me = create_logged_in_client().await;
+
+        let _response = me
+            .subreddit("RedditNobility".to_string())
+            .about()
             .await
             .unwrap();
-        let response = me.subreddit("RedditNobility".to_string()).about().await.unwrap();
     }
 
     #[ignore]
     #[tokio::test]
     async fn friend() {
-        dotenv::dotenv().ok();
-        let arc = PasswordAuthenticator::new(
-            std::env::var("CLIENT_KEY").unwrap().as_str(),
-            std::env::var("CLIENT_SECRET").unwrap().as_str(),
-            std::env::var("REDDIT_USER").unwrap().as_str(),
-            std::env::var("PASSWORD").unwrap().as_str(),
-        );
-        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
+        let me = create_logged_in_client().await;
+
+        let _response = me
+            .subreddit("RedditNobility".to_string())
+            .add_friend("LordPenguin42".to_string(), FriendType::Contributor)
             .await
             .unwrap();
-        let response = me.subreddit("RedditNobility".to_string()).add_friend("LordPenguin42".to_string(), FriendType::Contributor).await.unwrap();
     }
 
     #[ignore]
     #[tokio::test]
     async fn test_send() {
-        dotenv::dotenv().ok();
-        let arc = PasswordAuthenticator::new(
-            std::env::var("CLIENT_KEY").unwrap().as_str(),
-            std::env::var("CLIENT_SECRET").unwrap().as_str(),
-            std::env::var("REDDIT_USER").unwrap().as_str(),
-            std::env::var("PASSWORD").unwrap().as_str(),
-        );
-        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
-            .await
-            .unwrap();
+        let me = create_logged_in_client().await;
+
         let inbox = me.inbox();
         let result = inbox.compose("LordPenguin42".to_string(),
                                    "Test from Async Rawr".to_string(),
@@ -147,30 +129,18 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_block() {
-        dotenv::dotenv().ok();
-        let arc = PasswordAuthenticator::new(
-            std::env::var("CLIENT_KEY").unwrap().as_str(),
-            std::env::var("CLIENT_SECRET").unwrap().as_str(),
-            std::env::var("REDDIT_USER").unwrap().as_str(),
-            std::env::var("PASSWORD").unwrap().as_str(),
-        );
-        let me = Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
-            .await
-            .unwrap();
+        let me = create_logged_in_client().await;
+
         let inbox = me.inbox();
         inbox
             .block_author(FullName::from_str("t2_a3bjd54v").unwrap())
-            .await;
+            .await.unwrap();
     }
 
     #[tokio::test]
     async fn anon_user_tests() {
-        let me = Me::login(
-            AnonymousAuthenticator::new(),
-            "async_rawr test (by u/KingTuxWH)".to_string(),
-        )
-            .await
-            .unwrap();
+        let me = create_anon_client().await;
+
         let user = me.user("HoodwinkingGnome".to_string());
         let result = user.about().await;
         if let Err(error) = result {
@@ -178,8 +148,8 @@ mod tests {
             return;
         }
         let response = result.unwrap();
-        let submissions = user.submissions(None).await.unwrap();
-        let comments = user.comments(None).await.unwrap();
+        let _submissions = user.submissions(None).await.unwrap();
+        let _comments = user.comments(None).await.unwrap();
         println!("{}", response.data.name);
     }
 

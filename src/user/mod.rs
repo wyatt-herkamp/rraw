@@ -2,7 +2,7 @@ use crate::me::Me;
 use crate::responses::comments::Comments;
 use crate::responses::submission::Submissions;
 use crate::responses::user::UserResponse;
-use crate::responses::{GenericListing, RedditListing, RedditType};
+use crate::responses::RedditListing;
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 

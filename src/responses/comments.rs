@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::responses::{GenericListing, GenericResponse};
+use crate::responses::GenericListing;
 
 #[derive(Debug, Deserialize)]
 pub struct Comment {

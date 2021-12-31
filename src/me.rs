@@ -1,13 +1,13 @@
+use log::trace;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use std::sync::{Arc};
-use log::trace;
+use std::sync::Arc;
 
+use reqwest::header::HeaderMap;
 use reqwest::{Body, Client, ClientBuilder, Response};
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
-use serde::{de, Deserialize, Deserializer};
 use serde::de::DeserializeOwned;
+use serde::{de, Deserialize, Deserializer};
 
 use crate::auth::Authenticator;
 use crate::message::Inbox;
@@ -34,7 +34,9 @@ impl Me {
         auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
         user_agent: String,
     ) -> Result<Me, APIError> {
-        let client = ClientBuilder::new().user_agent(user_agent.clone()).build()?;
+        let client = ClientBuilder::new()
+            .user_agent(user_agent.clone())
+            .build()?;
         let arc = auth.clone();
         let mut guard = arc.lock().await;
         let b = guard.oauth();
@@ -47,12 +49,17 @@ impl Me {
         })
     }
     /// Gets the authenticator. Internal use
-    pub async fn get_authenticator(&self) -> MutexGuard<'_, Box<dyn Authenticator + 'static + Send>> {
+    pub async fn get_authenticator(
+        &self,
+    ) -> MutexGuard<'_, Box<dyn Authenticator + 'static + Send>> {
         self.auth.lock().await
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
     pub fn subreddit<T: Into<String>>(&self, name: T) -> Subreddit {
-        Subreddit { me: self, name: name.into() }
+        Subreddit {
+            me: self,
+            name: name.into(),
+        }
     }
     /// Inbox
     pub fn inbox(&self) -> Inbox {
@@ -60,30 +67,28 @@ impl Me {
     }
     /// Creates a user object. However, this will not tell you if the user exists.
     pub fn user<T: Into<String>>(&self, name: T) -> User {
-        User { me: self, name: name.into() }
+        User {
+            me: self,
+            name: name.into(),
+        }
     }
     /// Makes a get request with Reqwest response
-    pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, reqwest::Error> {
+    pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, APIError> {
         let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
-            guard.login(&self.client, self.user_agent.as_str()).await;
+            guard.login(&self.client, self.user_agent.as_str()).await?;
         }
         let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
         guard.headers(&mut headers);
         drop(guard);
-        self.client.get(string).headers(headers).send().await
+        self.client.get(string).headers(headers).send().await.map_err(|e| {APIError::from(e)})
     }
     /// Makes a post request with Reqwest response
-    pub async fn post(
-        &self,
-        url: &str,
-        oauth: bool,
-        body: Body,
-    ) -> Result<Response, reqwest::Error> {
+    pub async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, APIError> {
         let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
-            guard.login(&self.client, self.user_agent.as_str()).await;
+            guard.login(&self.client, self.user_agent.as_str()).await?;
         }
         let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
@@ -95,6 +100,7 @@ impl Me {
             .headers(headers)
             .send()
             .await
+            .map_err(|e| APIError::from(e))
     }
     /// Makes a get request with JSON response
     pub async fn get_json<T: DeserializeOwned>(
@@ -104,11 +110,11 @@ impl Me {
     ) -> Result<T, APIError> {
         let response = self.get(url, oauth).await?;
         if !response.status().is_success() {
-            trace!("Bad Response Status {}", response.status().as_u16() );
+            trace!("Bad Response Status {}", response.status().as_u16());
             return Err(response.status().clone().into());
         }
         let value = response.text().await?;
-        trace!("{}",&value);
+        trace!("{}", &value);
         let x: T = serde_json::from_str(value.as_str())?;
         return Ok(x);
     }
@@ -121,11 +127,11 @@ impl Me {
     ) -> Result<T, APIError> {
         let response = self.post(url, oauth, body).await?;
         if !response.status().is_success() {
-            trace!("Bad Response Status {}", response.status().as_u16() );
+            trace!("Bad Response Status {}", response.status().as_u16());
             return Err(response.status().clone().into());
         }
         let value = response.text().await?;
-        trace!("{}",&value);
+        trace!("{}", &value);
         let x: T = serde_json::from_str(value.as_str())?;
         return Ok(x);
     }
@@ -134,16 +140,17 @@ impl Me {
         let stem = if oauth_required || oauth_supported {
             // All endpoints support OAuth, but some do not support the regular endpoint. If we are
             // required to use it or support it, we will use it.
-            assert!(oauth_supported,
-                    "OAuth is required to use this endpoint, but your authenticator does not \
-                     support it.");
+            assert!(
+                oauth_supported,
+                "OAuth is required to use this endpoint, but your authenticator does not \
+                     support it."
+            );
             "https://oauth.reddit.com"
         } else {
             "https://api.reddit.com"
         };
         format!("{}{}", stem, dest)
     }
-
 
     /// Searches Reddit for subreddits
     pub async fn search_subreddits(
@@ -192,8 +199,8 @@ pub enum RedditType {
 
 impl<'de> Deserialize<'de> for RedditType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         RedditType::from_str(s.as_str()).map_err(de::Error::custom)
@@ -236,8 +243,8 @@ pub struct FullName {
 
 impl<'de> Deserialize<'de> for FullName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         FullName::from_str(s.as_str()).map_err(de::Error::custom)

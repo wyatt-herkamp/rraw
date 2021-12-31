@@ -1,9 +1,9 @@
-use std::sync::{Arc};
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use async_trait::async_trait;
-use reqwest::{Body, Client, Error, Response};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue, USER_AGENT};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
+use reqwest::{Body, Client};
 
 use crate::responses::other::TokenResponseData;
 use crate::utils::error::APIError;
@@ -111,7 +111,7 @@ impl Authenticator for PasswordAuthenticator {
                     self.client_secret.to_owned()
                 ))
             ))
-                .unwrap(),
+            .unwrap(),
         );
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
         header.insert(
@@ -136,9 +136,9 @@ impl Authenticator for PasswordAuthenticator {
                 let x = token.expires_in * 1000;
                 let x1 = (x as u128)
                     + SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_millis();
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_millis();
                 self.expiration_time = Some(x1);
                 return Ok(true);
             } else if let Err(response) = value {

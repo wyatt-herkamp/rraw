@@ -5,8 +5,8 @@ use reqwest::Body;
 use serde_json::Value;
 
 use crate::me::{FullName, Me};
-use crate::responses::RedditListing;
 use crate::responses::submission::Friend;
+use crate::responses::RedditListing;
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 

@@ -76,9 +76,9 @@ pub enum FriendType {
 impl Display for FriendType {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let string = match self {
-            FriendType::Contributor => { "contributor" }
-            FriendType::Moderator => { "moderator" }
-            FriendType::Custom(str) => { str.as_str() }
+            FriendType::Contributor => "contributor",
+            FriendType::Moderator => "moderator",
+            FriendType::Custom(str) => str.as_str(),
         };
         write!(f, "{}", string)
     }
