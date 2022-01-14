@@ -60,7 +60,7 @@ mod tests {
                     println!("Comment {:?}", comment.body);
                 }
                 Link(link) => {
-                    println!("Link {:?}", link.name);
+                    println!("Link {:?}", link.title);
                 }
                 _ => {}
             }

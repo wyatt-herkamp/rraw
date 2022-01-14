@@ -149,7 +149,7 @@ impl Me {
         } else {
             "https://api.reddit.com"
         };
-        format!("{}{}", stem, dest)
+        format!("{stem}{dest}")
     }
 
     /// Searches Reddit for subreddits
@@ -159,12 +159,12 @@ impl Me {
         limit: Option<u64>,
         feed: Option<FeedOption>,
     ) -> Result<Subreddits, APIError> {
-        let mut url = format!("https://www.reddit.com/subreddits/search.json?q={}", name);
+        let mut url = format!("https://www.reddit.com/subreddits/search.json?q={name}");
         if let Some(options) = feed {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
-            url.push_str(&mut format!("&limit={}", limit));
+            url.push_str(&mut format!("&limit={limit}"));
         }
         self.get_json::<Subreddits>(&*url, false).await
     }
@@ -176,12 +176,12 @@ impl Me {
         limit: Option<u64>,
         feed: Option<FeedOption>,
     ) -> Result<Users, APIError> {
-        let mut url = format!("https://www.reddit.com/users/search.json?q={}", name);
+        let mut url = format!("https://www.reddit.com/users/search.json?q={name}");
         if let Some(options) = feed {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
-            url.push_str(&mut format!("&limit={}", limit));
+            url.push_str(&mut format!("&limit={limit}"));
         }
         self.get_json::<Users>(&*url, false).await
     }

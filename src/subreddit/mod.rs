@@ -73,7 +73,7 @@ impl<'a> Subreddit<'a> {
     ) -> Result<Friend, APIError> {
         let string = format!("/r/{}/api/unfriend", &self.name);
 
-        let body = Body::from(format!("name={}&type={}", username, typ));
+        let body = Body::from(format!("name={username}&type={typ}"));
         return self.me.post_json::<Friend>(&*string, true, body).await;
     }
 }
