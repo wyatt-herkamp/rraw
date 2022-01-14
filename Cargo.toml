@@ -8,6 +8,8 @@ repository = "https://github.com/wherkamp/rraw"
 keywords = ["Reddit", "Async"]
 categories = ["api-bindings"]
 description = "An async Rust Reddit API Wrapper"
+rust-version  = "1.58"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
