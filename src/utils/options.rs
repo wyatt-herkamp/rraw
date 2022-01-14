@@ -17,18 +17,18 @@ impl FeedOption {
     pub fn url(&self) -> String {
         let mut url = String::new();
         if let Some(after) = &self.after {
-            url.push_str(&mut format!("&after={}", after));
+            url.push_str(&mut format!("&after={after}"));
         }
         if let Some(before) = &self.before {
-            url.push_str(&mut format!("&before={}", before));
+            url.push_str(&mut format!("&before={before}"));
         }
 
         if let Some(count) = &self.count {
-            url.push_str(&mut format!("&count={}", count));
+            url.push_str(&mut format!("&count={count}"));
         }
 
         if let Some(period) = &self.period {
-            url.push_str(&mut format!("&t={}", period.get_string()));
+            url.push_str(&mut format!("&t={period}"));
         }
         return url;
     }
@@ -60,6 +60,20 @@ impl TimePeriod {
             TimePeriod::Year => "year",
             TimePeriod::AllTime => "all",
         }
+    }
+}
+
+impl Display for TimePeriod {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let string = match self {
+            TimePeriod::Now => "now",
+            TimePeriod::Today => "day",
+            TimePeriod::Week => "week",
+            TimePeriod::Month => "month",
+            TimePeriod::Year => "year",
+            TimePeriod::AllTime => "all",
+        };
+        write!(f, "{}", string)
     }
 }
 

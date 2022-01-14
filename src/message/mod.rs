@@ -46,11 +46,9 @@ impl<'a> Inbox<'a> {
         subreddit: Option<String>,
     ) -> Result<Value, APIError> {
         let mut string = format!(
-            "api_type=json&subject={}&text={}&to={}",
-            subject, body, recipient
-        );
+            "api_type=json&subject={subject}&text={body}&to={recipient}");
         if let Some(sr) = subreddit {
-            string.push_str(format!("&from_sr={}", sr).as_str());
+            string.push_str(format!("&from_sr={sr}").as_str());
         }
         let body = Body::from(string);
         self.me.post_json::<Value>("/api/compose", true, body).await
