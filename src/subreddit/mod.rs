@@ -38,7 +38,7 @@ impl<'a> Subreddit<'a> {
     ) -> Result<Contributors, APIError> {
         let mut string = format!("/r/{}/about/contributors.json", &self.name);
         if let Some(options) = feed {
-            string.push_str("?");
+            string.push('?');
             string.push_str(options.url().as_str());
         }
         return self.me.get_json::<Contributors>(&*string, true).await;
@@ -47,7 +47,7 @@ impl<'a> Subreddit<'a> {
     pub async fn get_moderators(&self, feed: Option<FeedOption>) -> Result<Moderators, APIError> {
         let mut string = format!("/r/{}/about/moderators.json", &self.name);
         if let Some(options) = feed {
-            string.push_str("?");
+            string.push('?');
             string.push_str(options.url().as_str());
         }
         return self.me.get_json::<Moderators>(&*string, true).await;

@@ -19,7 +19,7 @@ impl<'a> Inbox<'a> {
     pub async fn block_author(&self, full_name: FullName) -> Result<Friend, APIError> {
         let string = "/api/block";
 
-        let string1 = format!("id={}", full_name.to_string());
+        let string1 = format!("id={}", full_name);
         let body = Body::from(string1);
 
         self.me.post_json::<Friend>(&*string, true, body).await

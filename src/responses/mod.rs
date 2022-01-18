@@ -43,10 +43,10 @@ impl RedditResponse {
             RedditType::Subreddit(_) => "t5",
             RedditType::Award => "t6",
         };
-        return RedditResponse {
+        RedditResponse {
             kind: kind.to_string(),
             data: reddit_type,
-        };
+        }
     }
 }
 
@@ -108,9 +108,9 @@ pub enum RedditType {
     /// Submission
     Link(Submission),
     /// TODO
-    Message(Message),
+    Message(Box<Message>),
     /// About Subreddit
-    Subreddit(AboutSubreddit),
+    Subreddit(Box<AboutSubreddit>),
     /// TODO
     Award,
 }

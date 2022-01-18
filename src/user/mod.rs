@@ -28,7 +28,7 @@ impl<'a> User<'a> {
     pub async fn comments(&self, feed: Option<FeedOption>) -> Result<Comments, APIError> {
         let mut string = format!("/user/{}/comments.json", &self.name);
         if let Some(options) = feed {
-            string.push_str("?");
+            string.push('?');
             string.push_str(options.url().as_str());
         }
         return self.me.get_json::<Comments>(&*string, false).await;
@@ -37,7 +37,7 @@ impl<'a> User<'a> {
     pub async fn submissions(&self, feed: Option<FeedOption>) -> Result<Submissions, APIError> {
         let mut string = format!("/user/{}/submitted.json", &self.name);
         if let Some(options) = feed {
-            string.push_str("?");
+            string.push('?');
             string.push_str(options.url().as_str());
         }
         return self.me.get_json::<Submissions>(&*string, false).await;
@@ -46,7 +46,7 @@ impl<'a> User<'a> {
     pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
         let mut string = format!("/user/{}/overview.json", &self.name);
         if let Some(options) = feed {
-            string.push_str("?");
+            string.push('?');
             string.push_str(options.url().as_str());
         }
         return self.me.get_json::<RedditListing>(&*string, false).await;
@@ -55,7 +55,7 @@ impl<'a> User<'a> {
     pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
         let mut string = format!("/user/{}/saved.json", &self.name);
         if let Some(options) = feed {
-            string.push_str("?");
+            string.push('?');
             string.push_str(options.url().as_str());
         }
         return self.me.get_json::<RedditListing>(&*string, true).await;

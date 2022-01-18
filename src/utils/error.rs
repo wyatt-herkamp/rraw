@@ -30,10 +30,10 @@ impl From<StatusCode> for APIError {
     fn from(err: StatusCode) -> APIError {
         match err {
             StatusCode::NOT_FOUND => {
-                return NotFound;
+                NotFound
             }
             value => {
-                return HTTPError(value);
+                HTTPError(value)
             }
         }
     }

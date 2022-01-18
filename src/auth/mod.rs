@@ -198,10 +198,10 @@ impl Authenticator for PasswordAuthenticator {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_millis();
-        return if self.expiration_time.is_none() {
+        if self.expiration_time.is_none() {
             true
         } else {
             i >= self.expiration_time.unwrap()
-        };
+        }
     }
 }

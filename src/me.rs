@@ -82,7 +82,12 @@ impl Me {
         let mut headers = HeaderMap::new();
         guard.headers(&mut headers);
         drop(guard);
-        self.client.get(string).headers(headers).send().await.map_err(|e| {APIError::from(e)})
+        self.client
+            .get(string)
+            .headers(headers)
+            .send()
+            .await
+            .map_err(APIError::from)
     }
     /// Makes a post request with Reqwest response
     pub async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, APIError> {
@@ -100,7 +105,7 @@ impl Me {
             .headers(headers)
             .send()
             .await
-            .map_err(|e| APIError::from(e))
+            .map_err(APIError::from)
     }
     /// Makes a get request with JSON response
     pub async fn get_json<T: DeserializeOwned>(
@@ -111,12 +116,12 @@ impl Me {
         let response = self.get(url, oauth).await?;
         if !response.status().is_success() {
             trace!("Bad Response Status {}", response.status().as_u16());
-            return Err(response.status().clone().into());
+            return Err(response.status().into());
         }
         let value = response.text().await?;
         trace!("{}", &value);
         let x: T = serde_json::from_str(value.as_str())?;
-        return Ok(x);
+        Ok(x)
     }
     /// Makes a post request with JSON response
     pub async fn post_json<T: DeserializeOwned>(
@@ -128,12 +133,12 @@ impl Me {
         let response = self.post(url, oauth, body).await?;
         if !response.status().is_success() {
             trace!("Bad Response Status {}", response.status().as_u16());
-            return Err(response.status().clone().into());
+            return Err(response.status().into());
         }
         let value = response.text().await?;
         trace!("{}", &value);
         let x: T = serde_json::from_str(value.as_str())?;
-        return Ok(x);
+        Ok(x)
     }
     /// Builds a URL
     pub fn build_url(&self, dest: &str, oauth_required: bool, oauth_supported: bool) -> String {
@@ -164,7 +169,7 @@ impl Me {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
-            url.push_str(&mut format!("&limit={limit}"));
+            url.push_str(&format!("&limit={limit}"));
         }
         self.get_json::<Subreddits>(&*url, false).await
     }
@@ -181,7 +186,7 @@ impl Me {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
-            url.push_str(&mut format!("&limit={limit}"));
+            url.push_str(&format!("&limit={limit}"));
         }
         self.get_json::<Users>(&*url, false).await
     }
@@ -209,14 +214,14 @@ impl<'de> Deserialize<'de> for RedditType {
 
 impl RedditType {
     pub fn get_id(&self) -> String {
-        return match self {
+        match self {
             RedditType::Comment => "t1".to_string(),
             RedditType::Account => "t2".to_string(),
             RedditType::Link => "t3".to_string(),
             RedditType::Message => "t4".to_string(),
             RedditType::Subreddit => "t5".to_string(),
             RedditType::Award => "t6".to_string(),
-        };
+        }
     }
 }
 
@@ -255,7 +260,7 @@ impl FromStr for FullName {
     type Err = APIError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let split = s.split("_").collect::<Vec<&str>>();
+        let split = s.split('_').collect::<Vec<&str>>();
         if split.len() == 1 {
             // Yes, it is always a good time to make a monty python joke.
             return Err(APIError::Custom("Then shalt thou count to two, no more, no less. Two shall be the number thou shalt count, and the number of the counting shall be two.".to_string()));
