@@ -51,6 +51,7 @@ impl Authenticator for AnonymousAuthenticator {
 
 impl AnonymousAuthenticator {
     /// Creates a new Authenticator
+    #[allow(clippy::new_ret_no_self)]
     pub fn new() -> Arc<Mutex<Box<dyn Authenticator + Send>>> {
         Arc::new(Mutex::new(Box::new(AnonymousAuthenticator {})))
     }
@@ -74,6 +75,7 @@ pub struct PasswordAuthenticator {
 
 impl PasswordAuthenticator {
     /// Creates a new Authenticator
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(
         client_id: &str,
         client_secret: &str,
