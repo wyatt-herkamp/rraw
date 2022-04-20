@@ -33,7 +33,7 @@ impl Debug for CommentResponse{
 }
 impl<'a> CommentType<'a> for CommentResponse{
     fn get_permalink(&self) -> &String {
-        return &self.permalink
+        &self.permalink
     }
 }
 pub type CommentsResponse = GenericListing<CommentResponse>;

@@ -6,9 +6,10 @@ use reqwest::Body;
 use crate::me::Me;
 use crate::submission::{ SubmissionRetriever};
 use crate::submission::response::{  SubmissionsResponse};
-use crate::utils::error::APIError;
+
 use crate::utils::options::{FeedOption, FriendType};
 use async_trait::async_trait;
+use crate::error::Error;
 use crate::subreddit::response::{Contributors, Friend, Moderators, SubredditResponse};
 
 /// Subreddit Object
@@ -27,7 +28,7 @@ impl<'a> PartialEq for Subreddit<'a> {
 
 impl<'a> Subreddit<'a> {
     ///  Gets the about info the Subreddit
-    pub async fn about(&self) -> Result<SubredditResponse, APIError> {
+    pub async fn about(&self) -> Result<SubredditResponse, Error> {
         let string = format!("/r/{}/about.json", &self.name);
         return self
             .me
@@ -38,7 +39,7 @@ impl<'a> Subreddit<'a> {
     pub async fn get_contributors(
         &self,
         feed: Option<FeedOption>,
-    ) -> Result<Contributors, APIError> {
+    ) -> Result<Contributors, Error> {
         let mut string = format!("/r/{}/about/contributors.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
@@ -47,7 +48,7 @@ impl<'a> Subreddit<'a> {
         return self.me.get_json::<Contributors>(&*string, true).await;
     }
     /// Gets a List of Moderators for the subreddit
-    pub async fn get_moderators(&self, feed: Option<FeedOption>) -> Result<Moderators, APIError> {
+    pub async fn get_moderators(&self, feed: Option<FeedOption>) -> Result<Moderators, Error> {
         let mut string = format!("/r/{}/about/moderators.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
@@ -56,7 +57,7 @@ impl<'a> Subreddit<'a> {
         return self.me.get_json::<Moderators>(&*string, true).await;
     }
     /// Adds a friend to the subreddit
-    pub async fn add_friend(&self, username: String, typ: FriendType) -> Result<Friend, APIError> {
+    pub async fn add_friend(&self, username: String, typ: FriendType) -> Result<Friend, Error> {
         trace!(
             "Adding {} to r/{} with type {}",
             &username,
@@ -73,7 +74,7 @@ impl<'a> Subreddit<'a> {
         &self,
         username: String,
         typ: FriendType,
-    ) -> Result<Friend, APIError> {
+    ) -> Result<Friend, Error> {
         let string = format!("/r/{}/api/unfriend", &self.name);
 
         let body = Body::from(format!("name={username}&type={typ}"));
@@ -83,7 +84,7 @@ impl<'a> Subreddit<'a> {
 
 #[async_trait]
 impl<'a> SubmissionRetriever for Subreddit<'a> {
-    async fn get_submissions<T: Into<String> + std::marker::Send>(&self, sort: T, feed_options: Option<FeedOption>) -> Result<SubmissionsResponse, APIError> {
+    async fn get_submissions<T: Into<String> + std::marker::Send>(&self, sort: T, feed_options: Option<FeedOption>) -> Result<SubmissionsResponse, Error> {
         let mut path = format!("/r/{}/{}", &self.name, sort.into());
         if let Some(options) = feed_options {
             options.extend(&mut path)

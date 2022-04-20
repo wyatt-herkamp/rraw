@@ -1,10 +1,11 @@
-use crate::comments::response::{CommentResponse, CommentsResponse};
+use crate::comments::response::{CommentsResponse};
+use crate::error::Error;
 use crate::me::Me;
 
 use crate::responses::user::UserResponse;
 use crate::responses::RedditListing;
 use crate::submission::response::SubmissionsResponse;
-use crate::utils::error::APIError;
+
 use crate::utils::options::FeedOption;
 
 /// The User Object for Reddit
@@ -21,12 +22,12 @@ impl<'a> PartialEq for User<'a> {
 
 impl<'a> User<'a> {
     /// Gets the about data for the user
-    pub async fn about(&self) -> Result<UserResponse, APIError> {
+    pub async fn about(&self) -> Result<UserResponse, Error> {
         let string = format!("/user/{}/about.json", &self.name);
         return self.me.get_json::<UserResponse>(&*string, false).await;
     }
     /// Comments
-    pub async fn comments(&self, feed: Option<FeedOption>) -> Result<CommentsResponse, APIError> {
+    pub async fn comments(&self, feed: Option<FeedOption>) -> Result<CommentsResponse, Error> {
         let mut string = format!("/user/{}/comments.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
@@ -35,7 +36,7 @@ impl<'a> User<'a> {
         return self.me.get_json::<CommentsResponse>(&*string, false).await;
     }
     /// user Submissions
-    pub async fn submissions(&self, feed: Option<FeedOption>) -> Result<SubmissionsResponse, APIError> {
+    pub async fn submissions(&self, feed: Option<FeedOption>) -> Result<SubmissionsResponse, Error> {
         let mut string = format!("/user/{}/submitted.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
@@ -44,7 +45,7 @@ impl<'a> User<'a> {
         return self.me.get_json::<SubmissionsResponse>(&*string, false).await;
     }
     /// User Overview
-    pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
+    pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/overview.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
@@ -53,7 +54,7 @@ impl<'a> User<'a> {
         return self.me.get_json::<RedditListing>(&*string, false).await;
     }
     /// Get User saved post. The user must be logged in
-    pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, APIError> {
+    pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/saved.json", &self.name);
         if let Some(options) = feed {
             string.push('?');

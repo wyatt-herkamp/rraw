@@ -3,11 +3,12 @@ use std::fmt::{Display, Formatter};
 
 use reqwest::Body;
 use serde_json::Value;
+use crate::error::Error;
 
 use crate::me::{FullName, Me};
 use crate::responses::RedditListing;
 use crate::subreddit::response::Friend;
-use crate::utils::error::APIError;
+
 use crate::utils::options::FeedOption;
 
 pub struct Inbox<'a> {
@@ -16,7 +17,7 @@ pub struct Inbox<'a> {
 
 impl<'a> Inbox<'a> {
     /// For blocking the author of a thing via inbox. - Reddit API
-    pub async fn block_author(&self, full_name: FullName) -> Result<Friend, APIError> {
+    pub async fn block_author(&self, full_name: FullName) -> Result<Friend, Error> {
         let string = "/api/block";
 
         let string1 = format!("id={}", full_name);
@@ -29,7 +30,7 @@ impl<'a> Inbox<'a> {
         &self,
         where_message: Option<WhereMessage>,
         feed: Option<FeedOption>,
-    ) -> Result<RedditListing, APIError> {
+    ) -> Result<RedditListing, Error> {
         let mut string = format!("/message/{}", where_message.unwrap_or(WhereMessage::Inbox));
         println!("{}", &string);
         if let Some(f) = feed {
@@ -44,7 +45,7 @@ impl<'a> Inbox<'a> {
         subject: String,
         body: String,
         subreddit: Option<String>,
-    ) -> Result<Value, APIError> {
+    ) -> Result<Value, Error> {
         let mut string = format!(
             "api_type=json&subject={subject}&text={body}&to={recipient}");
         if let Some(sr) = subreddit {

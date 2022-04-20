@@ -7,6 +7,7 @@ pub mod user;
 pub mod utils;
 pub mod submission;
 pub mod comments;
+pub mod error;
 
 #[cfg(test)]
 mod tests {
@@ -70,7 +71,7 @@ mod tests {
     #[tokio::test]
     async fn post_test() {
         let me = create_anon_client().await;
-        let subreddit = me.subreddit("rust".to_string());
+        let _subreddit = me.subreddit("rust".to_string());
     }
 
     #[ignore]

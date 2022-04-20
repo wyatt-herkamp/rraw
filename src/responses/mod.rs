@@ -94,7 +94,7 @@ impl<'de> Deserialize<'de> for RedditResponse {
                 _ => Err(D::Error::custom("Invalid Reddit Kind")),
             };
         }
-        return Err(serde::de::Error::custom("Some how we are missing a kind tag"));
+        Err(serde::de::Error::custom("Some how we are missing a kind tag"))
     }
 }
 
@@ -132,9 +132,9 @@ pub enum RedditType {
     /// Submission
     Link(SubmissionResponse),
     /// TODO
-    Message(Message),
+    Message(Box<Message>),
     /// About Subreddit
-    Subreddit(AboutSubreddit),
+    Subreddit(Box<AboutSubreddit>),
     /// TODO
     Award,
 }

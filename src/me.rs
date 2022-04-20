@@ -14,9 +14,11 @@ use crate::message::Inbox;
 use crate::responses::user::Users;
 use crate::subreddit::Subreddit;
 use crate::user::User;
-use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 use tokio::sync::{Mutex, MutexGuard};
+use crate::error::Error;
+use crate::error::http_error::HTTPError;
+use crate::error::internal_error::InternalError;
 use crate::subreddit::response::Subreddits;
 
 /// This is who you are. This is your identity and you access point to the Reddit API
@@ -33,7 +35,7 @@ impl Me {
     pub async fn login(
         auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
         user_agent: String,
-    ) -> Result<Me, APIError> {
+    ) -> Result<Me, Error> {
         let client = ClientBuilder::new()
             .user_agent(user_agent.clone())
             .build()?;
@@ -74,7 +76,7 @@ impl Me {
         }
     }
     /// Makes a get request with Reqwest response
-    pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, APIError> {
+    pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, Error> {
         let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
             guard.login(&self.client, self.user_agent.as_str()).await?;
@@ -87,11 +89,10 @@ impl Me {
             .get(string)
             .headers(headers)
             .send()
-            .await
-            .map_err(APIError::from)
+            .await.map_err(|error| Error::InternalError(InternalError::ReqwestError(error)))
     }
     /// Makes a post request with Reqwest response
-    pub async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, APIError> {
+    pub async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, Error> {
         let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
             guard.login(&self.client, self.user_agent.as_str()).await?;
@@ -106,18 +107,18 @@ impl Me {
             .headers(headers)
             .send()
             .await
-            .map_err(APIError::from)
+            .map_err(Error::from)
     }
     /// Makes a get request with JSON response
     pub async fn get_json<T: DeserializeOwned>(
         &self,
         url: &str,
         oauth: bool,
-    ) -> Result<T, APIError> {
+    ) -> crate::error::Result<T> {
         let response = self.get(url, oauth).await?;
         if !response.status().is_success() {
             trace!("Bad Response Status {}", response.status().as_u16());
-            return Err(response.status().into());
+            return Err(HTTPError::from(response.status()).into());
         }
         let value = response.text().await?;
         trace!("{}", &value);
@@ -130,11 +131,11 @@ impl Me {
         url: &str,
         oauth: bool,
         body: Body,
-    ) -> Result<T, APIError> {
+    ) -> crate::error::Result<T> {
         let response = self.post(url, oauth, body).await?;
         if !response.status().is_success() {
             trace!("Bad Response Status {}", response.status().as_u16());
-            return Err(response.status().into());
+            return Err(HTTPError::from(response.status()).into());
         }
         let value = response.text().await?;
         trace!("{}", &value);
@@ -164,7 +165,7 @@ impl Me {
         name: String,
         limit: Option<u64>,
         feed: Option<FeedOption>,
-    ) -> Result<Subreddits, APIError> {
+    ) -> crate::error::Result<Subreddits> {
         let mut url = format!("https://www.reddit.com/subreddits/search.json?q={name}");
         if let Some(options) = feed {
             url.push_str(options.url().as_str());
@@ -181,7 +182,7 @@ impl Me {
         name: String,
         limit: Option<u64>,
         feed: Option<FeedOption>,
-    ) -> Result<Users, APIError> {
+    ) -> crate::error::Result<Users> {
         let mut url = format!("https://www.reddit.com/users/search.json?q={name}");
         if let Some(options) = feed {
             url.push_str(options.url().as_str());
@@ -193,57 +194,10 @@ impl Me {
     }
 }
 
-#[derive(Debug)]
-pub enum RedditType {
-    Comment,
-    Account,
-    Link,
-    Message,
-    Subreddit,
-    Award,
-}
 
-impl<'de> Deserialize<'de> for RedditType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        RedditType::from_str(s.as_str()).map_err(de::Error::custom)
-    }
-}
-
-impl RedditType {
-    pub fn get_id(&self) -> String {
-        match self {
-            RedditType::Comment => "t1".to_string(),
-            RedditType::Account => "t2".to_string(),
-            RedditType::Link => "t3".to_string(),
-            RedditType::Message => "t4".to_string(),
-            RedditType::Subreddit => "t5".to_string(),
-            RedditType::Award => "t6".to_string(),
-        }
-    }
-}
-
-impl FromStr for RedditType {
-    type Err = APIError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "t1" => Ok(RedditType::Comment),
-            "t2" => Ok(RedditType::Account),
-            "t3" => Ok(RedditType::Link),
-            "t4" => Ok(RedditType::Message),
-            "t5" => Ok(RedditType::Subreddit),
-            "t6" => Ok(RedditType::Message),
-            _ => Err(APIError::Custom("Invalid RedditType".to_string())),
-        }
-    }
-}
 
 pub struct FullName {
-    pub reddit_type: RedditType,
+    pub reddit_type: String,
     pub id: String,
 }
 
@@ -258,16 +212,16 @@ impl<'de> Deserialize<'de> for FullName {
 }
 
 impl FromStr for FullName {
-    type Err = APIError;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let split = s.split('_').collect::<Vec<&str>>();
         if split.len() == 1 {
             // Yes, it is always a good time to make a monty python joke.
-            return Err(APIError::Custom("Then shalt thou count to two, no more, no less. Two shall be the number thou shalt count, and the number of the counting shall be two.".to_string()));
+            return Err(Error::from("Then shalt thou count to two, no more, no less. Two shall be the number thou shalt count, and the number of the counting shall be two."));
         }
         return Ok(FullName {
-            reddit_type: RedditType::from_str(split.get(0).unwrap()).unwrap(),
+            reddit_type: split.get(0).unwrap().to_string(),
             id: split.get(1).unwrap().to_string(),
         });
     }
@@ -275,6 +229,6 @@ impl FromStr for FullName {
 
 impl Display for FullName {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}_{}", self.reddit_type.get_id(), self.id)
+        write!(f, "{}_{}", self.reddit_type, self.id)
     }
 }

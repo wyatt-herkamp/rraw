@@ -2,8 +2,8 @@ use std::fmt::{Debug, Formatter};
 use crate::responses::{GenericListing, GenericResponse};
 
 pub use serde::Deserialize;
-use crate::submission::response::SubmissionResponse;
-use crate::user::User;
+
+
 
 ///About Data for the User
 #[derive(Deserialize, Clone)]

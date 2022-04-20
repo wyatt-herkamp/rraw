@@ -6,16 +6,18 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_
 use reqwest::{Body, Client};
 
 use crate::responses::other::TokenResponseData;
-use crate::utils::error::APIError;
 use tokio::sync::Mutex;
+use crate::error::Error;
+use crate::error::http_error::IntoResult;
+use crate::error::internal_error::InternalError;
 
 #[async_trait]
 pub trait Authenticator {
     /// Logins to the Reddit API
     /// true if successful
-    async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, APIError>;
+    async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, Error>;
     /// Releases the token back to Reddit
-    async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError>;
+    async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), Error>;
     /// Header Values required for auth
     fn headers(&self, headers: &mut HeaderMap);
     /// Supports OAuth
@@ -30,11 +32,11 @@ pub struct AnonymousAuthenticator;
 #[async_trait]
 impl Authenticator for AnonymousAuthenticator {
     /// Returns true because it is anonymous
-    async fn login(&mut self, _client: &Client, _user_agent: &str) -> Result<bool, APIError> {
+    async fn login(&mut self, _client: &Client, _user_agent: &str) -> Result<bool, Error> {
         Ok(true)
     }
     /// Does nothing
-    async fn logout(&mut self, _client: &Client, _user_agent: &str) -> Result<(), APIError> {
+    async fn logout(&mut self, _client: &Client, _user_agent: &str) -> Result<(), Error> {
         Ok(())
     }
     /// Does Nothing
@@ -96,7 +98,7 @@ impl PasswordAuthenticator {
 #[async_trait]
 impl Authenticator for PasswordAuthenticator {
     /// Logs in
-    async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, APIError> {
+    async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, Error> {
         let url = "https://www.reddit.com/api/v1/access_token";
         let body = format!(
             "grant_type=password&username={}&password={}",
@@ -113,46 +115,34 @@ impl Authenticator for PasswordAuthenticator {
                     self.client_secret.to_owned()
                 ))
             ))
-            .unwrap(),
+                .unwrap(),
         );
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
         header.insert(
             CONTENT_TYPE,
             HeaderValue::from_str("application/x-www-form-urlencoded").unwrap(),
         );
-        let result2 = client
+        let response = client
             .post(url)
             .body(Body::from(body))
             .headers(header)
             .send()
-            .await;
-        if let Ok(response) = result2 {
-            let code = response.status();
-            if !code.is_success() {
-                return Err(APIError::HTTPError(code));
-            }
-            let value = response.json::<TokenResponseData>().await;
-            if let Ok(token) = value {
-                self.token = Some(token.access_token);
-                println!("{:?}", &self.token);
-                let x = token.expires_in * 1000;
-                let x1 = (x as u128)
-                    + SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap()
-                        .as_millis();
-                self.expiration_time = Some(x1);
-                return Ok(true);
-            } else if let Err(response) = value {
-                return Err(APIError::from(response));
-            }
-        } else if let Err(response) = result2 {
-            return Err(APIError::from(response));
-        }
-        return Err(APIError::ExhaustedListing);
+            .await.map_err(InternalError::from)?;
+        response.status().into_result()?;
+
+        let token = response.json::<TokenResponseData>().await?;
+        self.token = Some(token.access_token);
+        let x = token.expires_in * 1000;
+        let x1 = (x as u128)
+            + SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
+        self.expiration_time = Some(x1);
+        return Ok(true);
     }
     /// Logs out
-    async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+    async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), Error> {
         let url = "https://www.reddit.com/api/v1/revoke_token";
         let body = format!("token={}", &self.token.to_owned().unwrap());
 
@@ -162,26 +152,16 @@ impl Authenticator for PasswordAuthenticator {
             CONTENT_TYPE,
             HeaderValue::from_str("application/x-www-form-urlencoded").unwrap(),
         );
-        let result2 = client
+        let response = client
             .post(url)
             .body(Body::from(body))
             .headers(header)
             .send()
-            .await;
-        match result2 {
-            Ok(ok) => {
-                if !ok.status().is_success() {
-                    Err(APIError::HTTPError(ok.status()))
-                } else {
-                    self.token = None;
-                    self.expiration_time = None;
-                    Ok(())
-                }
-            }
-            Err(err) => {
-                return Err(APIError::ReqwestError(err));
-            }
-        }
+            .await?;
+        response.status().into_result()?;
+        self.token = None;
+        self.expiration_time = None;
+        Ok(())
     }
     /// headers
     fn headers(&self, headers: &mut HeaderMap) {
