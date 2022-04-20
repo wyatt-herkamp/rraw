@@ -1,11 +1,15 @@
+pub mod response;
+
 use log::trace;
 use reqwest::Body;
 
 use crate::me::Me;
-use crate::responses::submission::{Contributors, Friend, Moderators};
-use crate::responses::subreddit::SubredditResponse;
+use crate::submission::{ SubmissionRetriever};
+use crate::submission::response::{  SubmissionsResponse};
 use crate::utils::error::APIError;
 use crate::utils::options::{FeedOption, FriendType};
+use async_trait::async_trait;
+use crate::subreddit::response::{Contributors, Friend, Moderators, SubredditResponse};
 
 /// Subreddit Object
 pub struct Subreddit<'a> {
@@ -30,7 +34,6 @@ impl<'a> Subreddit<'a> {
             .get_json::<SubredditResponse>(&*string, self.me.oauth)
             .await;
     }
-
     /// Gets the contributors for the Subreddit
     pub async fn get_contributors(
         &self,
@@ -75,5 +78,16 @@ impl<'a> Subreddit<'a> {
 
         let body = Body::from(format!("name={username}&type={typ}"));
         return self.me.post_json::<Friend>(&*string, true, body).await;
+    }
+}
+
+#[async_trait]
+impl<'a> SubmissionRetriever for Subreddit<'a> {
+    async fn get_submissions<T: Into<String> + std::marker::Send>(&self, sort: T, feed_options: Option<FeedOption>) -> Result<SubmissionsResponse, APIError> {
+        let mut path = format!("/r/{}/{}", &self.name, sort.into());
+        if let Some(options) = feed_options {
+            options.extend(&mut path)
+        }
+        return self.me.get_json::<SubmissionsResponse>(&path, false).await;
     }
 }

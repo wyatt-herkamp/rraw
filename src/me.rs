@@ -11,13 +11,13 @@ use serde::{de, Deserialize, Deserializer};
 
 use crate::auth::Authenticator;
 use crate::message::Inbox;
-use crate::responses::subreddit::Subreddits;
 use crate::responses::user::Users;
 use crate::subreddit::Subreddit;
 use crate::user::User;
 use crate::utils::error::APIError;
 use crate::utils::options::FeedOption;
 use tokio::sync::{Mutex, MutexGuard};
+use crate::subreddit::response::Subreddits;
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 #[derive(Clone)]
@@ -61,6 +61,7 @@ impl Me {
             name: name.into(),
         }
     }
+
     /// Inbox
     pub fn inbox(&self) -> Inbox {
         Inbox { me: self }
@@ -204,8 +205,8 @@ pub enum RedditType {
 
 impl<'de> Deserialize<'de> for RedditType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         RedditType::from_str(s.as_str()).map_err(de::Error::custom)
@@ -248,8 +249,8 @@ pub struct FullName {
 
 impl<'de> Deserialize<'de> for FullName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         FullName::from_str(s.as_str()).map_err(de::Error::custom)

@@ -1,9 +1,11 @@
+use std::fmt::{Debug, Formatter};
 use serde::Deserialize;
+use crate::comments::CommentType;
 
 use crate::responses::GenericListing;
 
-#[derive(Debug, Deserialize)]
-pub struct Comment {
+#[derive( Deserialize)]
+pub struct CommentResponse {
     pub link_id: Option<String>,
     pub likes: Option<bool>,
     pub id: String,
@@ -15,14 +17,23 @@ pub struct Comment {
     pub subreddit_id: Option<String>,
     pub subreddit: String,
     pub body: String,
-    pub link_title: String,
+    pub link_title: Option<String>,
     pub name: Option<String>,
-    pub permalink: Option<String>,
+    pub permalink: String,
     pub downs: Option<i32>,
     pub body_html: Option<String>,
     pub distinguished: Option<String>,
     pub stickied: Option<bool>,
     pub ups: Option<i32>,
 }
-
-pub type Comments = GenericListing<Comment>;
+impl Debug for CommentResponse{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Permalink: {}, ID: {}", self.permalink, self.id)
+    }
+}
+impl<'a> CommentType<'a> for CommentResponse{
+    fn get_permalink(&self) -> &String {
+        return &self.permalink
+    }
+}
+pub type CommentsResponse = GenericListing<CommentResponse>;

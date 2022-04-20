@@ -5,18 +5,22 @@ pub mod responses;
 pub mod subreddit;
 pub mod user;
 pub mod utils;
+pub mod submission;
+pub mod comments;
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
     use serde_json::Value;
-    
+
 
     use crate::auth::{AnonymousAuthenticator, PasswordAuthenticator};
+    use crate::comments::CommentRetriever;
     use crate::me::{FullName, Me};
     use crate::responses::RedditType;
     use crate::responses::RedditType::{Comment, Link};
+    use crate::submission::{SubmissionRetriever, SubmissionType};
     use crate::utils::options::FriendType;
 
     async fn create_logged_in_client() -> Me {
@@ -46,6 +50,27 @@ mod tests {
         let x = subreddit.about().await;
         let subreddit = x.unwrap();
         println!("{}", subreddit.data.title.unwrap());
+    }
+
+    #[tokio::test]
+    async fn anon_submissions_test() {
+        let me = create_anon_client().await;
+        let subreddit = me.subreddit("rust".to_string());
+        let submissions = subreddit.get_submissions("hot", None).await.unwrap();
+        let listing = submissions.data;
+        let vec = listing.children;
+        let submission = vec.get(0).unwrap().data.to_submission(&me);
+        let comment_response = submission.get_comments(None).await.unwrap();
+        let comments = comment_response.get(1).unwrap();
+        for x in comments.data.children.iter() {
+            println!("{:?}", x.data);
+        }
+    }
+
+    #[tokio::test]
+    async fn post_test() {
+        let me = create_anon_client().await;
+        let subreddit = me.subreddit("rust".to_string());
     }
 
     #[ignore]
@@ -85,6 +110,9 @@ mod tests {
                 }
                 RedditType::Subreddit(_s) => {}
                 RedditType::Award => {}
+                RedditType::Listing(listing) => {
+                    println!("Listing {:?}", listing.children.len());
+                }
             }
         }
     }

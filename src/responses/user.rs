@@ -1,9 +1,12 @@
+use std::fmt::{Debug, Formatter};
 use crate::responses::{GenericListing, GenericResponse};
 
 pub use serde::Deserialize;
+use crate::submission::response::SubmissionResponse;
+use crate::user::User;
 
 ///About Data for the User
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone)]
 pub struct AboutUser {
     /// The Reddit generated avatar image
     pub snoovatar_img: Option<String>,
@@ -121,6 +124,12 @@ pub struct AboutUser {
     pub comment_karma: Option<i64>,
     /// has_subscribed
     pub has_subscribed: Option<bool>,
+}
+
+impl Debug for AboutUser {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[User]. name: {}",  self.name)
+    }
 }
 
 /// About with a GenericResponse Wrap

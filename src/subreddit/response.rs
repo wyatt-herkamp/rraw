@@ -1,10 +1,39 @@
+use std::fmt::{Debug, Formatter};
 use crate::responses::{GenericListing, GenericResponse};
 
 pub use serde::Deserialize;
 
 use serde_json::Value;
 
-#[derive(Deserialize, Debug)]
+/// The response from an add friend request
+#[derive(Debug, Deserialize)]
+pub struct Friend {
+    /// Was the friend request a success
+    pub success: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Moderator {
+    pub name: String,
+    pub author_flair_text: Option<String>,
+    pub author_flair_css_class: Option<String>,
+    pub date: u64,
+    pub mod_permissions: Vec<String>,
+}
+
+pub type Moderators = GenericListing<Moderator>;
+
+#[derive(Debug, Deserialize)]
+pub struct Contributor {
+    pub name: String,
+    pub id: Option<String>,
+    pub rel_id: Option<String>,
+    pub date: u64,
+}
+
+pub type Contributors = GenericListing<Contributor>;
+
+#[derive(Deserialize)]
 pub struct AboutSubreddit {
     pub accounts_active: Option<i64>,
     pub accounts_active_is_fuzzed: Option<bool>,
@@ -83,7 +112,7 @@ pub struct AboutSubreddit {
     pub subscribers: Option<i64>,
     pub suggested_comment_sort: Option<Value>,
     pub title: Option<String>,
-    pub url: Option<String>,
+    pub url: String,
     pub user_can_flair_in_sr: Option<bool>,
     pub user_flair_background_color: Option<Value>,
     pub user_flair_css_class: Option<Value>,
@@ -106,6 +135,10 @@ pub struct AboutSubreddit {
     pub wls: Option<Value>,
     pub kind: Option<String>,
 }
-
+impl Debug for AboutSubreddit{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[Subreddit]. Permalink: {}", self.url)
+    }
+}
 pub type SubredditResponse = GenericResponse<AboutSubreddit>;
 pub type Subreddits = GenericListing<AboutSubreddit>;
