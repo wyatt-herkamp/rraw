@@ -1,4 +1,4 @@
-use crate::comments::response::CommentResponse;
+use crate::comments::response::{CommentResponse, CommentsResponse};
 use crate::me::Me;
 
 use crate::responses::user::UserResponse;
@@ -26,13 +26,13 @@ impl<'a> User<'a> {
         return self.me.get_json::<UserResponse>(&*string, false).await;
     }
     /// Comments
-    pub async fn comments(&self, feed: Option<FeedOption>) -> Result<CommentResponse, APIError> {
+    pub async fn comments(&self, feed: Option<FeedOption>) -> Result<CommentsResponse, APIError> {
         let mut string = format!("/user/{}/comments.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        return self.me.get_json::<CommentResponse>(&*string, false).await;
+        return self.me.get_json::<CommentsResponse>(&*string, false).await;
     }
     /// user Submissions
     pub async fn submissions(&self, feed: Option<FeedOption>) -> Result<SubmissionsResponse, APIError> {
