@@ -36,3 +36,13 @@ pub type Comments<'a, T> = GenericListing<Comment<'a, T>>;
 pub trait CommentRetriever {
     async fn get_comments(&self, sort: Option<CommentOption>) -> Result<ListingArray, Error>;
 }
+#[async_trait]
+impl<'a, T: CommentType<'a>> CommentRetriever for Comment<'a, T>{
+    async fn get_comments(&self, sort: Option<CommentOption>) -> Result<ListingArray, Error> {
+        let mut path = self.comment.get_permalink().to_string();
+        if let Some(options) = sort {
+            options.extend(&mut path)
+        }
+        return self.me.get_json::<ListingArray>(&path, false).await;
+    }
+}
