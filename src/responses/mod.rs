@@ -1,18 +1,17 @@
-use std::fmt::{Debug, Formatter};
+use crate::comments::response::CommentResponse;
 use serde::de::Error;
 pub use serde::Deserialize;
 use serde::Deserializer;
-use crate::comments::response::CommentResponse;
+use std::fmt::{Debug, Formatter};
 
 use crate::responses::message::Message;
 
-use crate::responses::user::AboutUser;
 use crate::submission::response::SubmissionResponse;
 use crate::subreddit::response::AboutSubreddit;
+use crate::user::response::AboutUser;
 
 pub mod message;
 pub mod other;
-pub mod user;
 
 pub type ListingArray = Vec<RedditListing>;
 
@@ -55,7 +54,7 @@ impl RedditResponse {
             RedditType::Message(_) => "t4",
             RedditType::Subreddit(_) => "t5",
             RedditType::Award => "t6",
-            RedditType::Listing(_) => "Listing"
+            RedditType::Listing(_) => "Listing",
         };
         RedditResponse {
             kind: kind.to_string(),
@@ -66,8 +65,8 @@ impl RedditResponse {
 
 impl<'de> Deserialize<'de> for RedditResponse {
     fn deserialize<D>(deserializer: D) -> Result<RedditResponse, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let value: serde_json::Value = serde::Deserialize::deserialize(deserializer).unwrap();
         if let Some(kind) = value["kind"].as_str() {
@@ -94,7 +93,9 @@ impl<'de> Deserialize<'de> for RedditResponse {
                 _ => Err(D::Error::custom("Invalid Reddit Kind")),
             };
         }
-        Err(serde::de::Error::custom("Some how we are missing a kind tag"))
+        Err(serde::de::Error::custom(
+            "Some how we are missing a kind tag",
+        ))
     }
 }
 

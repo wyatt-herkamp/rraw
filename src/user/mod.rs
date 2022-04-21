@@ -1,16 +1,19 @@
-use crate::comments::response::{CommentsResponse};
-use crate::error::Error;
-use crate::me::Me;
+pub mod me;
+pub mod response;
 
-use crate::responses::user::UserResponse;
+use crate::client::Client;
+use crate::comments::response::CommentsResponse;
+use crate::error::Error;
+
 use crate::responses::RedditListing;
 use crate::submission::response::SubmissionsResponse;
+use crate::user::response::UserResponse;
 
 use crate::utils::options::FeedOption;
 
 /// The User Object for Reddit
 pub struct User<'a> {
-    pub(crate) me: &'a Me,
+    pub(crate) me: &'a Client,
     pub name: String,
 }
 
@@ -36,13 +39,19 @@ impl<'a> User<'a> {
         return self.me.get_json::<CommentsResponse>(&*string, false).await;
     }
     /// user Submissions
-    pub async fn submissions(&self, feed: Option<FeedOption>) -> Result<SubmissionsResponse, Error> {
+    pub async fn submissions(
+        &self,
+        feed: Option<FeedOption>,
+    ) -> Result<SubmissionsResponse, Error> {
         let mut string = format!("/user/{}/submitted.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        return self.me.get_json::<SubmissionsResponse>(&*string, false).await;
+        return self
+            .me
+            .get_json::<SubmissionsResponse>(&*string, false)
+            .await;
     }
     /// User Overview
     pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
@@ -52,14 +61,5 @@ impl<'a> User<'a> {
             string.push_str(options.url().as_str());
         }
         return self.me.get_json::<RedditListing>(&*string, false).await;
-    }
-    /// Get User saved post. The user must be logged in
-    pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
-        let mut string = format!("/user/{}/saved.json", &self.name);
-        if let Some(options) = feed {
-            string.push('?');
-            string.push_str(options.url().as_str());
-        }
-        return self.me.get_json::<RedditListing>(&*string, true).await;
     }
 }

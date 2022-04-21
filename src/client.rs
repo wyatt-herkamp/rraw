@@ -5,37 +5,37 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use reqwest::header::HeaderMap;
-use reqwest::{Body, Client, ClientBuilder, Response};
+use reqwest::{Body, Client as ReqwestClient, ClientBuilder, Response};
 use serde::de::DeserializeOwned;
 use serde::{de, Deserialize, Deserializer};
 
 use crate::auth::Authenticator;
+use crate::error::http_error::{HTTPError, IntoResult};
+use crate::error::internal_error::InternalError;
+use crate::error::Error;
 use crate::message::Inbox;
-use crate::responses::user::Users;
+use crate::subreddit::response::Subreddits;
 use crate::subreddit::Subreddit;
+use crate::user::response::Users;
 use crate::user::User;
 use crate::utils::options::FeedOption;
 use tokio::sync::{Mutex, MutexGuard};
-use crate::error::Error;
-use crate::error::http_error::HTTPError;
-use crate::error::internal_error::InternalError;
-use crate::subreddit::response::Subreddits;
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 #[derive(Clone)]
-pub struct Me {
+pub struct Client {
     auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
-    client: Client,
+    client: ReqwestClient,
     user_agent: String,
     pub oauth: bool,
 }
 
-impl Me {
+impl Client {
     /// Logs into Reddit and Returns a Me
     pub async fn login(
         auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
         user_agent: String,
-    ) -> Result<Me, Error> {
+    ) -> Result<Client, Error> {
         let client = ClientBuilder::new()
             .user_agent(user_agent.clone())
             .build()?;
@@ -43,7 +43,7 @@ impl Me {
         let mut guard = arc.lock().await;
         let b = guard.oauth();
         let _x = guard.login(&client, &user_agent).await;
-        Ok(Me {
+        Ok(Client {
             auth,
             client,
             user_agent,
@@ -89,7 +89,8 @@ impl Me {
             .get(string)
             .headers(headers)
             .send()
-            .await.map_err(|error| Error::InternalError(InternalError::ReqwestError(error)))
+            .await
+            .map_err(|error| Error::InternalError(InternalError::ReqwestError(error)))
     }
     /// Makes a post request with Reqwest response
     pub async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, Error> {
@@ -116,10 +117,7 @@ impl Me {
         oauth: bool,
     ) -> crate::error::Result<T> {
         let response = self.get(url, oauth).await?;
-        if !response.status().is_success() {
-            trace!("Bad Response Status {}", response.status().as_u16());
-            return Err(HTTPError::from(response.status()).into());
-        }
+        response.status().into_result()?;
         let value = response.text().await?;
         trace!("{}", &value);
         let x: T = serde_json::from_str(value.as_str())?;
@@ -133,10 +131,8 @@ impl Me {
         body: Body,
     ) -> crate::error::Result<T> {
         let response = self.post(url, oauth, body).await?;
-        if !response.status().is_success() {
-            trace!("Bad Response Status {}", response.status().as_u16());
-            return Err(HTTPError::from(response.status()).into());
-        }
+        response.status().into_result()?;
+
         let value = response.text().await?;
         trace!("{}", &value);
         let x: T = serde_json::from_str(value.as_str())?;
@@ -166,14 +162,14 @@ impl Me {
         limit: Option<u64>,
         feed: Option<FeedOption>,
     ) -> crate::error::Result<Subreddits> {
-        let mut url = format!("https://www.reddit.com/subreddits/search.json?q={name}");
+        let mut url = format!("/subreddits/search?q={name}");
         if let Some(options) = feed {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
             url.push_str(&format!("&limit={limit}"));
         }
-        self.get_json::<Subreddits>(&*url, false).await
+        self.get_json::<Subreddits>(&url, false).await
     }
 
     /// Searches Reddit for Users
@@ -183,18 +179,16 @@ impl Me {
         limit: Option<u64>,
         feed: Option<FeedOption>,
     ) -> crate::error::Result<Users> {
-        let mut url = format!("https://www.reddit.com/users/search.json?q={name}");
+        let mut url = format!("/users/search?q={name}");
         if let Some(options) = feed {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
             url.push_str(&format!("&limit={limit}"));
         }
-        self.get_json::<Users>(&*url, false).await
+        self.get_json::<Users>(&url, false).await
     }
 }
-
-
 
 pub struct FullName {
     pub reddit_type: String,
@@ -203,8 +197,8 @@ pub struct FullName {
 
 impl<'de> Deserialize<'de> for FullName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         FullName::from_str(s.as_str()).map_err(de::Error::custom)

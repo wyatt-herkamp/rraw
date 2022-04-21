@@ -1,30 +1,31 @@
 pub mod auth;
-pub mod me;
+pub mod client;
+pub mod comments;
+pub mod error;
 pub mod message;
 pub mod responses;
+pub mod submission;
 pub mod subreddit;
 pub mod user;
 pub mod utils;
-pub mod submission;
-pub mod comments;
-pub mod error;
 
 #[cfg(test)]
 mod tests {
+
+    use serde::Serialize;
     use std::str::FromStr;
 
     use serde_json::Value;
 
-
     use crate::auth::{AnonymousAuthenticator, PasswordAuthenticator};
+    use crate::client::{Client, FullName};
     use crate::comments::CommentRetriever;
-    use crate::me::{FullName, Me};
     use crate::responses::RedditType;
     use crate::responses::RedditType::{Comment, Link};
     use crate::submission::{SubmissionRetriever, SubmissionType};
     use crate::utils::options::FriendType;
 
-    async fn create_logged_in_client() -> Me {
+    async fn create_logged_in_client() -> Client {
         dotenv::dotenv().ok();
         let arc = PasswordAuthenticator::new(
             std::env::var("CLIENT_KEY").unwrap().as_str(),
@@ -32,16 +33,18 @@ mod tests {
             std::env::var("REDDIT_USER").unwrap().as_str(),
             std::env::var("PASSWORD").unwrap().as_str(),
         );
-        return Me::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
+        return Client::login(arc, "async_rawr test (by u/KingTuxWH)".to_string())
             .await
             .unwrap();
     }
 
-    async fn create_anon_client() -> Me {
-        return Me::login(
+    async fn create_anon_client() -> Client {
+        return Client::login(
             AnonymousAuthenticator::new(),
             "async_rawr test (by u/KingTuxWH)".to_string(),
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
     }
 
     #[tokio::test]
@@ -76,21 +79,10 @@ mod tests {
 
     #[ignore]
     #[tokio::test]
-    async fn user_saved() {
+    async fn test() {
         let me = create_logged_in_client().await;
-        let user = me.user("KingTuxWH".to_string());
-        let x = user.saved(None).await.unwrap();
-        for x in x.data.children {
-            match x.data {
-                Comment(comment) => {
-                    println!("Comment {:?}", comment.body);
-                }
-                Link(link) => {
-                    println!("Link {:?}", link.title);
-                }
-                _ => {}
-            }
-        }
+        let response = me.get("/api/v1/me", true).await.unwrap();
+        println!("{}", response.text().await.unwrap())
     }
 
     #[ignore]
@@ -163,7 +155,8 @@ mod tests {
         let inbox = me.inbox();
         inbox
             .block_author(FullName::from_str("t2_a3bjd54v").unwrap())
-            .await.unwrap();
+            .await
+            .unwrap();
     }
 
     #[tokio::test]

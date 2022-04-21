@@ -3,19 +3,19 @@ pub mod response;
 use log::trace;
 use reqwest::Body;
 
-use crate::me::Me;
-use crate::submission::{ SubmissionRetriever};
-use crate::submission::response::{  SubmissionsResponse};
+use crate::client::Client;
+use crate::submission::response::SubmissionsResponse;
+use crate::submission::SubmissionRetriever;
 
-use crate::utils::options::{FeedOption, FriendType};
-use async_trait::async_trait;
 use crate::error::Error;
 use crate::subreddit::response::{Contributors, Friend, Moderators, SubredditResponse};
+use crate::utils::options::{FeedOption, FriendType};
+use async_trait::async_trait;
 
 /// Subreddit Object
 pub struct Subreddit<'a> {
     /// Me
-    pub(crate) me: &'a Me,
+    pub(crate) me: &'a Client,
     /// Name
     pub name: String,
 }
@@ -36,10 +36,7 @@ impl<'a> Subreddit<'a> {
             .await;
     }
     /// Gets the contributors for the Subreddit
-    pub async fn get_contributors(
-        &self,
-        feed: Option<FeedOption>,
-    ) -> Result<Contributors, Error> {
+    pub async fn get_contributors(&self, feed: Option<FeedOption>) -> Result<Contributors, Error> {
         let mut string = format!("/r/{}/about/contributors.json", &self.name);
         if let Some(options) = feed {
             string.push('?');
@@ -70,11 +67,7 @@ impl<'a> Subreddit<'a> {
         return self.me.post_json::<Friend>(&*string, true, body).await;
     }
     ///  removes a friend from the Subreddit
-    pub async fn remove_friend(
-        &self,
-        username: String,
-        typ: FriendType,
-    ) -> Result<Friend, Error> {
+    pub async fn remove_friend(&self, username: String, typ: FriendType) -> Result<Friend, Error> {
         let string = format!("/r/{}/api/unfriend", &self.name);
 
         let body = Body::from(format!("name={username}&type={typ}"));
@@ -84,7 +77,11 @@ impl<'a> Subreddit<'a> {
 
 #[async_trait]
 impl<'a> SubmissionRetriever for Subreddit<'a> {
-    async fn get_submissions<T: Into<String> + std::marker::Send>(&self, sort: T, feed_options: Option<FeedOption>) -> Result<SubmissionsResponse, Error> {
+    async fn get_submissions<T: Into<String> + std::marker::Send>(
+        &self,
+        sort: T,
+        feed_options: Option<FeedOption>,
+    ) -> Result<SubmissionsResponse, Error> {
         let mut path = format!("/r/{}/{}", &self.name, sort.into());
         if let Some(options) = feed_options {
             options.extend(&mut path)

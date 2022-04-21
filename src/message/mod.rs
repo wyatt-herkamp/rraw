@@ -1,18 +1,18 @@
 use core::fmt;
 use std::fmt::{Display, Formatter};
 
+use crate::error::Error;
 use reqwest::Body;
 use serde_json::Value;
-use crate::error::Error;
 
-use crate::me::{FullName, Me};
+use crate::client::{Client, FullName};
 use crate::responses::RedditListing;
 use crate::subreddit::response::Friend;
 
 use crate::utils::options::FeedOption;
 
 pub struct Inbox<'a> {
-    pub(crate) me: &'a Me,
+    pub(crate) me: &'a Client,
 }
 
 impl<'a> Inbox<'a> {
@@ -46,8 +46,7 @@ impl<'a> Inbox<'a> {
         body: String,
         subreddit: Option<String>,
     ) -> Result<Value, Error> {
-        let mut string = format!(
-            "api_type=json&subject={subject}&text={body}&to={recipient}");
+        let mut string = format!("api_type=json&subject={subject}&text={body}&to={recipient}");
         if let Some(sr) = subreddit {
             string.push_str(format!("&from_sr={sr}").as_str());
         }
