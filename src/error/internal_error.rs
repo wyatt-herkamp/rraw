@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Error, Debug, Eq, PartialEq)]
+#[derive(Error, Debug)]
 pub enum InternalError {
     #[error("Reqwest had an Error {0}")]
     ReqwestError(reqwest::Error),
