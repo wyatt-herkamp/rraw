@@ -1,6 +1,7 @@
 pub mod me;
 pub mod response;
 
+use crate::auth::Authenticator;
 use crate::client::Client;
 use crate::comments::response::CommentsResponse;
 use crate::error::Error;
@@ -12,18 +13,18 @@ use crate::user::response::UserResponse;
 use crate::utils::options::FeedOption;
 
 /// The User Object for Reddit
-pub struct User<'a> {
-    pub(crate) me: &'a Client,
+pub struct User<'a, A: Authenticator> {
+    pub(crate) me: &'a Client<A>,
     pub name: String,
 }
 
-impl<'a> PartialEq for User<'a> {
-    fn eq(&self, other: &User) -> bool {
+impl<'a, A: Authenticator> PartialEq for User<'a, A> {
+    fn eq(&self, other: &User<A>) -> bool {
         self.name == other.name
     }
 }
 
-impl<'a> User<'a> {
+impl<'a, A: Authenticator> User<'a, A> {
     /// Gets the about data for the user
     pub async fn about(&self) -> Result<UserResponse, Error> {
         let string = format!("/user/{}/about.json", &self.name);

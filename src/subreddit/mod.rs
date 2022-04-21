@@ -7,26 +7,27 @@ use crate::client::Client;
 use crate::submission::response::SubmissionsResponse;
 use crate::submission::SubmissionRetriever;
 
+use crate::auth::Authenticator;
 use crate::error::Error;
 use crate::subreddit::response::{Contributors, Friend, Moderators, SubredditResponse};
 use crate::utils::options::{FeedOption, FriendType};
 use async_trait::async_trait;
 
 /// Subreddit Object
-pub struct Subreddit<'a> {
+pub struct Subreddit<'a, A: Authenticator> {
     /// Me
-    pub(crate) me: &'a Client,
+    pub(crate) me: &'a Client<A>,
     /// Name
     pub name: String,
 }
 
-impl<'a> PartialEq for Subreddit<'a> {
-    fn eq(&self, other: &Subreddit) -> bool {
+impl<'a, A: Authenticator> PartialEq for Subreddit<'a, A> {
+    fn eq(&self, other: &Subreddit<A>) -> bool {
         self.name == other.name
     }
 }
 
-impl<'a> Subreddit<'a> {
+impl<'a, A: Authenticator> Subreddit<'a, A> {
     ///  Gets the about info the Subreddit
     pub async fn about(&self) -> Result<SubredditResponse, Error> {
         let string = format!("/r/{}/about.json", &self.name);
@@ -76,7 +77,7 @@ impl<'a> Subreddit<'a> {
 }
 
 #[async_trait]
-impl<'a> SubmissionRetriever for Subreddit<'a> {
+impl<'a, A: Authenticator> SubmissionRetriever for Subreddit<'a, A> {
     async fn get_submissions<T: Into<String> + std::marker::Send>(
         &self,
         sort: T,

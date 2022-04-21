@@ -12,7 +12,6 @@ pub mod utils;
 #[cfg(test)]
 mod tests {
 
-    use serde::Serialize;
     use std::str::FromStr;
 
     use serde_json::Value;
@@ -25,7 +24,7 @@ mod tests {
     use crate::submission::{SubmissionRetriever, SubmissionType};
     use crate::utils::options::FriendType;
 
-    async fn create_logged_in_client() -> Client {
+    async fn create_logged_in_client() -> Client<PasswordAuthenticator> {
         dotenv::dotenv().ok();
         let arc = PasswordAuthenticator::new(
             std::env::var("CLIENT_KEY").unwrap().as_str(),
@@ -38,7 +37,7 @@ mod tests {
             .unwrap();
     }
 
-    async fn create_anon_client() -> Client {
+    async fn create_anon_client() -> Client<AnonymousAuthenticator> {
         return Client::login(
             AnonymousAuthenticator::new(),
             "async_rawr test (by u/KingTuxWH)".to_string(),

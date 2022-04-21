@@ -1,6 +1,7 @@
 use core::fmt;
 use std::fmt::{Display, Formatter};
 
+use crate::auth::PasswordAuthenticator;
 use crate::error::Error;
 use reqwest::Body;
 use serde_json::Value;
@@ -12,7 +13,7 @@ use crate::subreddit::response::Friend;
 use crate::utils::options::FeedOption;
 
 pub struct Inbox<'a> {
-    pub(crate) me: &'a Client,
+    pub(crate) me: &'a Client<PasswordAuthenticator>,
 }
 
 impl<'a> Inbox<'a> {

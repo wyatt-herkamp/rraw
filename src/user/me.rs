@@ -1,3 +1,4 @@
+use crate::auth::PasswordAuthenticator;
 use crate::client::Client;
 use crate::comments::response::CommentsResponse;
 use crate::error::Error;
@@ -10,7 +11,7 @@ use crate::utils::options::FeedOption;
 
 /// The User Object for Reddit
 pub struct Me<'a> {
-    pub(crate) client: &'a Client,
+    pub(crate) client: &'a Client<PasswordAuthenticator>,
     pub me: MeResponse,
 }
 

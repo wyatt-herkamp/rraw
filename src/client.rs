@@ -9,33 +9,31 @@ use reqwest::{Body, Client as ReqwestClient, ClientBuilder, Response};
 use serde::de::DeserializeOwned;
 use serde::{de, Deserialize, Deserializer};
 
-use crate::auth::Authenticator;
-use crate::error::http_error::{HTTPError, IntoResult};
+use crate::auth::{Authenticator, PasswordAuthenticator};
+use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
 use crate::message::Inbox;
 use crate::subreddit::response::Subreddits;
 use crate::subreddit::Subreddit;
-use crate::user::response::Users;
+use crate::user::me::Me;
+use crate::user::response::{MeResponse, Users};
 use crate::user::User;
 use crate::utils::options::FeedOption;
 use tokio::sync::{Mutex, MutexGuard};
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 #[derive(Clone)]
-pub struct Client {
-    auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
+pub struct Client<A: Authenticator> {
+    auth: Arc<Mutex<A>>,
     client: ReqwestClient,
     user_agent: String,
     pub oauth: bool,
 }
 
-impl Client {
+impl<A: Authenticator> Client<A> {
     /// Logs into Reddit and Returns a Me
-    pub async fn login(
-        auth: Arc<Mutex<Box<dyn Authenticator + Send>>>,
-        user_agent: String,
-    ) -> Result<Client, Error> {
+    pub async fn login(auth: Arc<Mutex<A>>, user_agent: String) -> Result<Client<A>, Error> {
         let client = ClientBuilder::new()
             .user_agent(user_agent.clone())
             .build()?;
@@ -51,25 +49,19 @@ impl Client {
         })
     }
     /// Gets the authenticator. Internal use
-    pub async fn get_authenticator(
-        &self,
-    ) -> MutexGuard<'_, Box<dyn Authenticator + 'static + Send>> {
+    pub async fn get_authenticator(&self) -> MutexGuard<'_, A> {
         self.auth.lock().await
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
-    pub fn subreddit<T: Into<String>>(&self, name: T) -> Subreddit {
+    pub fn subreddit<T: Into<String>>(&self, name: T) -> Subreddit<A> {
         Subreddit {
             me: self,
             name: name.into(),
         }
     }
 
-    /// Inbox
-    pub fn inbox(&self) -> Inbox {
-        Inbox { me: self }
-    }
     /// Creates a user object. However, this will not tell you if the user exists.
-    pub fn user<T: Into<String>>(&self, name: T) -> User {
+    pub fn user<T: Into<String>>(&self, name: T) -> User<A> {
         User {
             me: self,
             name: name.into(),
@@ -189,7 +181,19 @@ impl Client {
         self.get_json::<Users>(&url, false).await
     }
 }
+impl Client<PasswordAuthenticator> {
+    /// Inbox
+    pub fn inbox(&self) -> Inbox {
+        Inbox { me: self }
+    }
 
+    /// Get Me
+    #[allow(clippy::needless_lifetimes)]
+    pub async fn me<'a>(&'a self) -> Result<Me<'a>, Error> {
+        let me: MeResponse = self.get_json("/api/v1/me", true).await?;
+        Ok(Me { client: self, me })
+    }
+}
 pub struct FullName {
     pub reddit_type: String,
     pub id: String,

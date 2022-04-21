@@ -1,5 +1,6 @@
 pub mod response;
 
+use crate::auth::Authenticator;
 use crate::client::Client;
 use crate::comments::CommentRetriever;
 use crate::responses::{GenericListing, ListingArray};
@@ -12,7 +13,7 @@ use crate::error::Error;
 pub trait SubmissionType<'a>: Sized + Sync + Send {
     fn get_permalink(&self) -> &String;
 
-    fn to_submission(&'a self, me: &'a Client) -> Submission<'a, Self>
+    fn to_submission<A: Authenticator>(&'a self, me: &'a Client<A>) -> Submission<'a, A, Self>
     where
         Self: SubmissionType<'a>,
     {
@@ -29,13 +30,13 @@ impl<'a> SubmissionType<'a> for String {
     }
 }
 
-pub struct Submission<'a, T: SubmissionType<'a>> {
+pub struct Submission<'a, A: Authenticator, T: SubmissionType<'a>> {
     pub submission: &'a T,
-    pub(crate) me: &'a Client,
+    pub(crate) me: &'a Client<A>,
 }
 
 #[async_trait]
-impl<'a, T: SubmissionType<'a>> CommentRetriever for Submission<'a, T> {
+impl<'a, A: Authenticator, T: SubmissionType<'a>> CommentRetriever for Submission<'a, A, T> {
     async fn get_comments(&self, sort: Option<CommentOption>) -> Result<ListingArray, Error> {
         let mut path = self.submission.get_permalink().to_string();
         if let Some(options) = sort {
@@ -45,7 +46,7 @@ impl<'a, T: SubmissionType<'a>> CommentRetriever for Submission<'a, T> {
     }
 }
 
-pub type Submissions<'a, T> = GenericListing<Submission<'a, T>>;
+pub type Submissions<'a, A, T> = GenericListing<Submission<'a, A, T>>;
 
 #[async_trait]
 pub trait SubmissionRetriever {

@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -5,14 +6,14 @@ use async_trait::async_trait;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Client};
 
-use crate::responses::other::TokenResponseData;
-use tokio::sync::Mutex;
-use crate::error::Error;
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
+use crate::error::Error;
+use crate::responses::other::TokenResponseData;
+use tokio::sync::Mutex;
 
 #[async_trait]
-pub trait Authenticator {
+pub trait Authenticator: Clone + Send + Sync + Debug {
     /// Logins to the Reddit API
     /// true if successful
     async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, Error>;
@@ -27,8 +28,13 @@ pub trait Authenticator {
 }
 
 /// AnonymousAuthenticator
+#[derive(Clone)]
 pub struct AnonymousAuthenticator;
-
+impl Debug for AnonymousAuthenticator {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[AnonymousAuthenticator]")
+    }
+}
 #[async_trait]
 impl Authenticator for AnonymousAuthenticator {
     /// Returns true because it is anonymous
@@ -54,12 +60,12 @@ impl Authenticator for AnonymousAuthenticator {
 impl AnonymousAuthenticator {
     /// Creates a new Authenticator
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> Arc<Mutex<Box<dyn Authenticator + Send>>> {
-        Arc::new(Mutex::new(Box::new(AnonymousAuthenticator {})))
+    pub fn new() -> Arc<Mutex<AnonymousAuthenticator>> {
+        Arc::new(Mutex::new(AnonymousAuthenticator {}))
     }
 }
 
-/// Password based Authenticator
+#[derive(Clone)]
 pub struct PasswordAuthenticator {
     /// Token
     pub token: Option<String>,
@@ -75,6 +81,16 @@ pub struct PasswordAuthenticator {
     password: String,
 }
 
+impl Debug for PasswordAuthenticator {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[PasswordAuthenticator] Token Defined: {} Expires At {}",
+            self.token.is_some(),
+            self.expiration_time.unwrap_or(0)
+        )
+    }
+}
 impl PasswordAuthenticator {
     /// Creates a new Authenticator
     #[allow(clippy::new_ret_no_self)]
@@ -83,15 +99,15 @@ impl PasswordAuthenticator {
         client_secret: &str,
         username: &str,
         password: &str,
-    ) -> Arc<Mutex<Box<dyn Authenticator + Send>>> {
-        Arc::new(Mutex::new(Box::new(PasswordAuthenticator {
+    ) -> Arc<Mutex<PasswordAuthenticator>> {
+        Arc::new(Mutex::new(PasswordAuthenticator {
             token: None,
             expiration_time: None,
             client_id: client_id.to_owned(),
             client_secret: client_secret.to_owned(),
             username: username.to_owned(),
             password: password.to_owned(),
-        })))
+        }))
     }
 }
 
@@ -115,7 +131,7 @@ impl Authenticator for PasswordAuthenticator {
                     self.client_secret.to_owned()
                 ))
             ))
-                .unwrap(),
+            .unwrap(),
         );
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
         header.insert(
@@ -127,7 +143,8 @@ impl Authenticator for PasswordAuthenticator {
             .body(Body::from(body))
             .headers(header)
             .send()
-            .await.map_err(InternalError::from)?;
+            .await
+            .map_err(InternalError::from)?;
         response.status().into_result()?;
 
         let token = response.json::<TokenResponseData>().await?;
@@ -135,9 +152,9 @@ impl Authenticator for PasswordAuthenticator {
         let x = token.expires_in * 1000;
         let x1 = (x as u128)
             + SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis();
         self.expiration_time = Some(x1);
         return Ok(true);
     }

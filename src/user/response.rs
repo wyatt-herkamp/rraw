@@ -1,5 +1,4 @@
 use crate::responses::{GenericListing, GenericResponse};
-use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
 pub use serde::Deserialize;
