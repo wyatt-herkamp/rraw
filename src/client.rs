@@ -20,12 +20,12 @@ use crate::user::me::Me;
 use crate::user::response::{MeResponse, Users};
 use crate::user::User;
 use crate::utils::options::FeedOption;
-use tokio::sync::{Mutex, MutexGuard};
+use tokio::sync::{RwLock, RwLockReadGuard};
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 #[derive(Clone)]
 pub struct Client<A: Authenticator> {
-    auth: Arc<Mutex<A>>,
+    auth: Arc<RwLock<A>>,
     client: ReqwestClient,
     user_agent: String,
     pub oauth: bool,
@@ -33,12 +33,12 @@ pub struct Client<A: Authenticator> {
 
 impl<A: Authenticator> Client<A> {
     /// Logs into Reddit and Returns a Me
-    pub async fn login(auth: Arc<Mutex<A>>, user_agent: String) -> Result<Client<A>, Error> {
+    pub async fn login(auth: Arc<RwLock<A>>, user_agent: String) -> Result<Client<A>, Error> {
         let client = ClientBuilder::new()
             .user_agent(user_agent.clone())
             .build()?;
         let arc = auth.clone();
-        let mut guard = arc.lock().await;
+        let mut guard = arc.write().await;
         let b = guard.oauth();
         let _x = guard.login(&client, &user_agent).await;
         Ok(Client {
@@ -49,8 +49,8 @@ impl<A: Authenticator> Client<A> {
         })
     }
     /// Gets the authenticator. Internal use
-    pub async fn get_authenticator(&self) -> MutexGuard<'_, A> {
-        self.auth.lock().await
+    pub async fn get_authenticator(&self) -> RwLockReadGuard<'_, A> {
+        self.auth.read().await
     }
     /// Creates a subreddit object. However, this will not tell you if the user exists.
     pub fn subreddit<T: Into<String>>(&self, name: T) -> Subreddit<A> {
@@ -71,7 +71,10 @@ impl<A: Authenticator> Client<A> {
     pub async fn get(&self, url: &str, oauth: bool) -> Result<Response, Error> {
         let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
-            guard.login(&self.client, self.user_agent.as_str()).await?;
+            trace!("Token Expired. Refreshing");
+            drop(guard);
+            self.re_login();
+            guard = self.get_authenticator().await;
         }
         let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
@@ -88,7 +91,10 @@ impl<A: Authenticator> Client<A> {
     pub async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, Error> {
         let mut guard = self.get_authenticator().await;
         if guard.needs_token_refresh() {
-            guard.login(&self.client, self.user_agent.as_str()).await?;
+            trace!("Token Expired. Refreshing");
+            drop(guard);
+            self.re_login();
+            guard = self.get_authenticator().await;
         }
         let string = self.build_url(url, oauth, guard.oauth());
         let mut headers = HeaderMap::new();
@@ -179,6 +185,10 @@ impl<A: Authenticator> Client<A> {
             url.push_str(&format!("&limit={limit}"));
         }
         self.get_json::<Users>(&url, false).await
+    }
+    async fn re_login(&self) {
+        let mut guard = self.auth.write().await;
+        guard.login(&self.client, &self.user_agent).await;
     }
 }
 impl Client<PasswordAuthenticator> {

@@ -4,7 +4,6 @@ use std::fmt::{Debug, Formatter};
 pub use serde::Deserialize;
 
 use serde_json::Value;
-
 ///About Data for the User
 #[derive(Deserialize, Clone)]
 pub struct MeResponse {

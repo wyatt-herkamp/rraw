@@ -10,7 +10,7 @@ use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
 use crate::responses::other::TokenResponseData;
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 #[async_trait]
 pub trait Authenticator: Clone + Send + Sync + Debug {
@@ -60,8 +60,8 @@ impl Authenticator for AnonymousAuthenticator {
 impl AnonymousAuthenticator {
     /// Creates a new Authenticator
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> Arc<Mutex<AnonymousAuthenticator>> {
-        Arc::new(Mutex::new(AnonymousAuthenticator {}))
+    pub fn new() -> Arc<RwLock<AnonymousAuthenticator>> {
+        Arc::new(RwLock::new(AnonymousAuthenticator {}))
     }
 }
 
@@ -99,8 +99,8 @@ impl PasswordAuthenticator {
         client_secret: &str,
         username: &str,
         password: &str,
-    ) -> Arc<Mutex<PasswordAuthenticator>> {
-        Arc::new(Mutex::new(PasswordAuthenticator {
+    ) -> Arc<RwLock<PasswordAuthenticator>> {
+        Arc::new(RwLock::new(PasswordAuthenticator {
             token: None,
             expiration_time: None,
             client_id: client_id.to_owned(),
