@@ -7,13 +7,15 @@ pub trait IntoResult {
 
 impl IntoResult for StatusCode {
     fn into_result(self) -> Result<(), HTTPError> {
-        if self.is_success() { Ok(()) } else {
+        if self.is_success() {
+            Ok(())
+        } else {
             Err(HTTPError::from(self))
         }
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Eq, PartialEq)]
 pub enum HTTPError {
     #[error("HTTP Error Code '{0}'")]
     Other(StatusCode),
@@ -24,13 +26,8 @@ pub enum HTTPError {
 impl From<StatusCode> for HTTPError {
     fn from(err: StatusCode) -> HTTPError {
         match err {
-            StatusCode::NOT_FOUND => {
-                HTTPError::NotFound
-            }
-            value => {
-                HTTPError::Other(value)
-            }
+            StatusCode::NOT_FOUND => HTTPError::NotFound,
+            value => HTTPError::Other(value),
         }
     }
 }
-

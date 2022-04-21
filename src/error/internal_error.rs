@@ -1,10 +1,7 @@
-
-
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Eq, PartialEq)]
 pub enum InternalError {
-
     #[error("Reqwest had an Error {0}")]
     ReqwestError(reqwest::Error),
     #[error("Serde Json Parse Error {0}")]
@@ -19,10 +16,8 @@ impl From<reqwest::Error> for InternalError {
     }
 }
 
-
 impl From<serde_json::Error> for InternalError {
     fn from(err: serde_json::Error) -> InternalError {
         InternalError::JSONError(err)
     }
 }
-
