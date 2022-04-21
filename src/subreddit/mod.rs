@@ -3,9 +3,9 @@ pub mod response;
 use log::trace;
 use reqwest::Body;
 
-use crate::client::Client;
 use crate::submission::response::SubmissionsResponse;
 use crate::submission::SubmissionRetriever;
+use crate::Client;
 
 use crate::auth::Authenticator;
 use crate::error::Error;

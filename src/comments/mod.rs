@@ -1,9 +1,9 @@
 pub mod response;
 
 use crate::auth::Authenticator;
-use crate::client::Client;
 use crate::responses::{GenericListing, ListingArray};
 use crate::utils::options::CommentOption;
+use crate::Client;
 use async_trait::async_trait;
 
 use crate::error::Error;

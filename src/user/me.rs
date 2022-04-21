@@ -1,7 +1,7 @@
 use crate::auth::PasswordAuthenticator;
-use crate::client::Client;
 use crate::comments::response::CommentsResponse;
 use crate::error::Error;
+use crate::Client;
 
 use crate::responses::RedditListing;
 use crate::submission::response::SubmissionsResponse;

@@ -6,9 +6,9 @@ use crate::error::Error;
 use reqwest::Body;
 use serde_json::Value;
 
-use crate::client::{Client, FullName};
 use crate::responses::RedditListing;
 use crate::subreddit::response::Friend;
+use crate::{Client, FullName};
 
 use crate::utils::options::FeedOption;
 
