@@ -47,23 +47,32 @@ pub struct AboutUser {
     //TODO expand upon later
     pub subreddit: Value,
     pub snoovatar_size: Option<Vec<i64>>,
+    #[serde(default)]
     pub awardee_karma: i64,
     pub id: String,
     pub verified: bool,
     pub is_gold: bool,
+    #[serde(default)]
+    pub is_suspended: bool,
     pub is_mod: bool,
+    #[serde(default)]
     pub awarder_karma: i64,
     pub has_verified_email: bool,
     pub icon_img: String,
     pub hide_from_robots: bool,
+    #[serde(default)]
     pub link_karma: i64,
     pub is_blocked: bool,
+    #[serde(default)]
     pub total_karma: i64,
     pub pref_show_snoovatar: bool,
     pub name: String,
+    #[serde(default)]
     pub created: i64,
+    #[serde(default)]
     pub created_utc: i64,
     pub snoovatar_img: String,
+    #[serde(default)]
     pub comment_karma: i64,
     pub accept_followers: bool,
     pub has_subscribed: bool,
