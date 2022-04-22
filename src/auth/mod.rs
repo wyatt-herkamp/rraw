@@ -94,19 +94,19 @@ impl Debug for PasswordAuthenticator {
 impl PasswordAuthenticator {
     /// Creates a new Authenticator
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(
-        client_id: &str,
-        client_secret: &str,
-        username: &str,
-        password: &str,
+    pub fn new<S: Into<String>>(
+        client_id: S,
+        client_secret: S,
+        username: S,
+        password: S,
     ) -> Arc<RwLock<PasswordAuthenticator>> {
         Arc::new(RwLock::new(PasswordAuthenticator {
             token: None,
             expiration_time: None,
-            client_id: client_id.to_owned(),
-            client_secret: client_secret.to_owned(),
-            username: username.to_owned(),
-            password: password.to_owned(),
+            client_id: client_id.into(),
+            client_secret: client_secret.into(),
+            username: username.into(),
+            password: password.into(),
         }))
     }
 }
@@ -147,7 +147,8 @@ impl Authenticator for PasswordAuthenticator {
             .map_err(InternalError::from)?;
         response.status().into_result()?;
 
-        let token = response.json::<TokenResponseData>().await?;
+        let token = response.text().await?;
+        let token: TokenResponseData = serde_json::from_str(token.as_str())?;
         self.token = Some(token.access_token);
         let x = token.expires_in * 1000;
         let x1 = (x as u128)
