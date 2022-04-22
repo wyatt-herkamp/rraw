@@ -2,13 +2,41 @@ use core::fmt;
 use std::fmt::{Display, Formatter};
 
 pub use serde::Serialize;
+#[derive(Clone, Debug, Serialize)]
+pub struct CommentOption {
+    pub sort: Option<String>,
+    pub depth: Option<u32>,
+    pub limit: Option<u32>,
+}
 
+impl CommentOption {
+    ///Returns the URL extension for the request
+    pub fn url(&self) -> String {
+        let mut url = String::new();
+        if let Some(sort) = &self.sort {
+            url.push_str(&format!("&sort={sort}"));
+        }
+        if let Some(depth) = &self.depth {
+            url.push_str(&format!("&depth={depth}"));
+        }
+
+        if let Some(limit) = &self.limit {
+            url.push_str(&format!("&limit={limit}"));
+        }
+        url
+    }
+    pub fn extend(&self, value: &mut String) {
+        value.push('?');
+        value.push_str(self.url().as_str());
+    }
+}
 ///A simple object to let you set informationons about the listing you are getting
 #[derive(Clone, Debug, Serialize)]
 pub struct FeedOption {
     pub after: Option<String>,
     pub before: Option<String>,
     pub count: Option<u32>,
+    pub limit: Option<u32>,
     pub period: Option<TimePeriod>,
 }
 
@@ -29,6 +57,9 @@ impl FeedOption {
 
         if let Some(period) = &self.period {
             url.push_str(&format!("&t={period}"));
+        }
+        if let Some(limit) = &self.limit {
+            url.push_str(&format!("&limit={limit}"));
         }
         url
     }
