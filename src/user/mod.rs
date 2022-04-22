@@ -4,35 +4,30 @@ pub mod response;
 use crate::auth::Authenticator;
 use crate::comments::response::CommentsResponse;
 use crate::error::Error;
+use crate::responses::listing::RedditListing;
 use crate::Client;
 
-use crate::responses::RedditListing;
 use crate::submission::response::SubmissionsResponse;
-use crate::user::response::UserResponse;
+use crate::user::response::AboutUser;
 
 use crate::utils::options::FeedOption;
 
 /// The User Object for Reddit
 pub struct User<'a, A: Authenticator> {
     pub(crate) me: &'a Client<A>,
-    pub name: String,
+    pub user: AboutUser,
 }
 
 impl<'a, A: Authenticator> PartialEq for User<'a, A> {
     fn eq(&self, other: &User<A>) -> bool {
-        self.name == other.name
+        self.user.name == other.user.name
     }
 }
 
 impl<'a, A: Authenticator> User<'a, A> {
-    /// Gets the about data for the user
-    pub async fn about(&self) -> Result<UserResponse, Error> {
-        let string = format!("/user/{}/about.json", &self.name);
-        return self.me.get_json::<UserResponse>(&*string, false).await;
-    }
     /// Comments
     pub async fn comments(&self, feed: Option<FeedOption>) -> Result<CommentsResponse, Error> {
-        let mut string = format!("/user/{}/comments.json", &self.name);
+        let mut string = format!("/user/{}/comments.json", &self.user);
         if let Some(options) = feed {
             string.push('?');
             string.push_str(options.url().as_str());
@@ -44,7 +39,7 @@ impl<'a, A: Authenticator> User<'a, A> {
         &self,
         feed: Option<FeedOption>,
     ) -> Result<SubmissionsResponse, Error> {
-        let mut string = format!("/user/{}/submitted.json", &self.name);
+        let mut string = format!("/user/{}/submitted.json", &self.user);
         if let Some(options) = feed {
             string.push('?');
             string.push_str(options.url().as_str());
@@ -56,7 +51,7 @@ impl<'a, A: Authenticator> User<'a, A> {
     }
     /// User Overview
     pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
-        let mut string = format!("/user/{}/overview.json", &self.name);
+        let mut string = format!("/user/{}/overview.json", &self.user);
         if let Some(options) = feed {
             string.push('?');
             string.push_str(options.url().as_str());

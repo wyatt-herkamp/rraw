@@ -9,8 +9,16 @@ use reqwest::{Body, Client};
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
-use crate::responses::other::TokenResponseData;
 use tokio::sync::RwLock;
+pub use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+pub struct TokenResponseData {
+    pub access_token: String,
+    pub expires_in: u64,
+    pub scope: String,
+    pub token_type: String,
+}
 
 #[async_trait]
 pub trait Authenticator: Clone + Send + Sync + Debug {

@@ -1,12 +1,12 @@
 pub mod response;
 
 use crate::auth::Authenticator;
-use crate::responses::{GenericListing, ListingArray};
 use crate::utils::options::CommentOption;
 use crate::Client;
 use async_trait::async_trait;
 
 use crate::error::Error;
+use crate::responses::listing::{GenericListing, ListingArray};
 
 pub trait CommentType<'a>: Sized + Sync + Send {
     fn get_permalink(&self) -> &String;

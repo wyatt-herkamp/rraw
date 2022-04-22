@@ -3,7 +3,7 @@ mod user_tests {
     use log::LevelFilter;
     use rraw::auth::AnonymousAuthenticator;
     use rraw::Client;
-    pub static TEST_USERS: [&str; 2] = ["KingTuxWH", "TheSmartKing"];
+    pub static TEST_USERS: [&str; 3] = ["KingTuxWH", "TheSmartKing", "Princeflower13"];
 
     fn init() {
         if let Err(error) = env_logger::builder()
@@ -29,12 +29,13 @@ mod user_tests {
         let client =
             Client::login(AnonymousAuthenticator::new(), "RRAW Test (by u/KingTuxWH)").await?;
         for username in TEST_USERS {
-            let user = client.user(username);
+            let user = client.user(username).await;
             assert!(
-                user.about().await.is_ok(),
+                user.is_ok(),
                 "{}/about could not be loaded correctly",
                 username
             );
+            let user = user.unwrap();
             assert!(
                 user.submissions(None).await.is_ok(),
                 "{}/submissions could not be loaded correctly",

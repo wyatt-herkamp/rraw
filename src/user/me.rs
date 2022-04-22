@@ -3,7 +3,7 @@ use crate::comments::response::CommentsResponse;
 use crate::error::Error;
 use crate::Client;
 
-use crate::responses::RedditListing;
+use crate::responses::listing::RedditListing;
 use crate::submission::response::SubmissionsResponse;
 use crate::user::response::MeResponse;
 

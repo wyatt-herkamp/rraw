@@ -6,9 +6,10 @@ use crate::error::Error;
 use reqwest::Body;
 use serde_json::Value;
 
-use crate::responses::RedditListing;
+use crate::responses::listing::RedditListing;
+use crate::responses::FullName;
 use crate::subreddit::response::Friend;
-use crate::{Client, FullName};
+use crate::Client;
 
 use crate::utils::options::FeedOption;
 
@@ -33,7 +34,6 @@ impl<'a> Inbox<'a> {
         feed: Option<FeedOption>,
     ) -> Result<RedditListing, Error> {
         let mut string = format!("/message/{}", where_message.unwrap_or(WhereMessage::Inbox));
-        println!("{}", &string);
         if let Some(f) = feed {
             f.extend(&mut string);
         }

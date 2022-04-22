@@ -1,7 +1,7 @@
-use std::fmt::{Debug, Formatter};
+use crate::responses::listing::GenericListing;
 use serde::Deserialize;
+use std::fmt::{Debug, Formatter};
 
-use crate::responses::GenericListing;
 use crate::submission::SubmissionType;
 
 #[derive(Deserialize, Clone)]
@@ -33,7 +33,11 @@ pub struct SubmissionResponse {
 
 impl Debug for SubmissionResponse {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[Submission]. Permalink: {}, ID: {}", self.permalink, self.id)
+        write!(
+            f,
+            "[Submission]. Permalink: {}, ID: {}",
+            self.permalink, self.id
+        )
     }
 }
 
@@ -44,6 +48,3 @@ impl<'a> SubmissionType<'a> for SubmissionResponse {
 }
 
 pub type SubmissionsResponse = GenericListing<SubmissionResponse>;
-
-
-

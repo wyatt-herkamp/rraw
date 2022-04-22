@@ -1,9 +1,11 @@
-use crate::responses::{GenericListing, GenericResponse};
-use std::fmt::{Debug, Formatter};
+use crate::responses::GenericResponse;
+use std::fmt::{Debug, Display, Formatter};
 
 pub use serde::Deserialize;
 
-use serde_json::{ Value};
+use crate::responses::listing::GenericListing;
+use serde_json::Value;
+
 ///About Data for the User
 #[derive(Deserialize, Clone)]
 pub struct MeResponse {
@@ -78,6 +80,11 @@ pub struct AboutUser {
     pub has_subscribed: bool,
     #[serde(flatten)]
     pub personal_details: Option<PersonalInformation>,
+}
+impl Display for AboutUser {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 impl Debug for AboutUser {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

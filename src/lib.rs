@@ -8,9 +8,8 @@ pub mod subreddit;
 pub mod user;
 pub mod utils;
 use log::trace;
-use std::fmt;
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
+use std::fmt::Formatter;
+
 use std::sync::Arc;
 
 use reqwest::header::HeaderMap;
@@ -23,10 +22,10 @@ use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
 use crate::message::Inbox;
-use crate::subreddit::response::Subreddits;
+use crate::subreddit::response::{SubredditResponse, Subreddits};
 use crate::subreddit::Subreddit;
 use crate::user::me::Me;
-use crate::user::response::{MeResponse, Users};
+use crate::user::response::{MeResponse, UserResponse, Users};
 use crate::user::User;
 use crate::utils::options::FeedOption;
 use tokio::sync::{RwLock, RwLockReadGuard};
@@ -62,8 +61,7 @@ impl<A: Authenticator> Client<A> {
         })
     }
 
-    /// Creates a subreddit struct.
-    /// This function will not call the Reddit API
+    /// Loads SubReddit
     /// ```rust
     /// #[tokio::main]
     /// async fn main() ->anyhow::Result<()>{
@@ -76,15 +74,16 @@ impl<A: Authenticator> Client<A> {
     ///    Ok(())
     /// }
     /// ```
-    pub fn subreddit<T: Into<String>>(&self, name: T) -> Subreddit<A> {
-        Subreddit {
+    pub async fn subreddit<T: Into<String>>(&self, name: T) -> Result<Subreddit<'_, A>, Error> {
+        let string = format!("/r/{}/about.json", name.into());
+        let subreddit = self.get_json::<SubredditResponse>(&string, false).await?;
+        Ok(Subreddit {
             me: self,
-            name: name.into(),
-        }
+            subreddit: subreddit.data,
+        })
     }
 
     /// Creates a User struct.
-    /// This function will not call the Reddit API
     /// ```rust
     /// #[tokio::main]
     /// async fn main() ->anyhow::Result<()>{
@@ -93,15 +92,17 @@ impl<A: Authenticator> Client<A> {
     ///    use rraw::Client;
     ///    env_logger::builder().is_test(true).filter_level(LevelFilter::Trace).try_init();
     ///    let client = Client:: login(AnonymousAuthenticator::new(), "RRAW Test (by u/KingTuxWH)").await?;
-    ///    let subreddit = client.user("KingTuxWH");
+    ///    let subreddit = client.user("KingTuxWH").await?;
     ///    Ok(())
     /// }
     /// ```
-    pub fn user<T: Into<String>>(&self, name: T) -> User<A> {
-        User {
+    pub async fn user<T: Into<String>>(&self, name: T) -> Result<User<'_, A>, Error> {
+        let string = format!("/u/{}/about", name.into());
+        let user = self.get_json::<UserResponse>(&string, false).await?;
+        Ok(User {
             me: self,
-            name: name.into(),
-        }
+            user: user.data,
+        })
     }
 
     /// Searches for Subreddits by name
@@ -293,45 +294,8 @@ impl Client<PasswordAuthenticator> {
     ///    Ok(())
     /// }
     /// ```
-    #[allow(clippy::needless_lifetimes)]
     pub async fn me<'a>(&'a self) -> Result<Me<'a>, Error> {
         let me: MeResponse = self.get_json("/api/v1/me", true).await?;
         Ok(Me { client: self, me })
-    }
-}
-pub struct FullName {
-    pub reddit_type: String,
-    pub id: String,
-}
-
-impl<'de> Deserialize<'de> for FullName {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        FullName::from_str(s.as_str()).map_err(de::Error::custom)
-    }
-}
-
-impl FromStr for FullName {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let split = s.split('_').collect::<Vec<&str>>();
-        if split.len() == 1 {
-            // Yes, it is always a good time to make a monty python joke.
-            return Err(Error::from("Then shalt thou count to two, no more, no less. Two shall be the number thou shalt count, and the number of the counting shall be two."));
-        }
-        return Ok(FullName {
-            reddit_type: split.get(0).unwrap().to_string(),
-            id: split.get(1).unwrap().to_string(),
-        });
-    }
-}
-
-impl Display for FullName {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}_{}", self.reddit_type, self.id)
     }
 }

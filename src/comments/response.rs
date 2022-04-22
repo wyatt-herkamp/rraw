@@ -1,10 +1,9 @@
-use std::fmt::{Debug, Formatter};
-use serde::Deserialize;
 use crate::comments::CommentType;
+use crate::responses::listing::GenericListing;
+use serde::Deserialize;
+use std::fmt::{Debug, Formatter};
 
-use crate::responses::GenericListing;
-
-#[derive( Deserialize)]
+#[derive(Deserialize)]
 pub struct CommentResponse {
     pub link_id: Option<String>,
     pub likes: Option<bool>,
@@ -26,12 +25,12 @@ pub struct CommentResponse {
     pub stickied: Option<bool>,
     pub ups: Option<i32>,
 }
-impl Debug for CommentResponse{
+impl Debug for CommentResponse {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Permalink: {}, ID: {}", self.permalink, self.id)
     }
 }
-impl<'a> CommentType<'a> for CommentResponse{
+impl<'a> CommentType<'a> for CommentResponse {
     fn get_permalink(&self) -> &String {
         &self.permalink
     }
