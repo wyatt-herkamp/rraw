@@ -3,7 +3,7 @@ use std::fmt::{Debug, Formatter};
 
 pub use serde::Deserialize;
 
-use serde_json::Value;
+use serde_json::{ Value};
 ///About Data for the User
 #[derive(Deserialize, Clone)]
 pub struct MeResponse {
@@ -68,9 +68,9 @@ pub struct AboutUser {
     pub pref_show_snoovatar: bool,
     pub name: String,
     #[serde(default)]
-    pub created: i64,
+    pub created: f64,
     #[serde(default)]
-    pub created_utc: i64,
+    pub created_utc: f64,
     pub snoovatar_img: String,
     #[serde(default)]
     pub comment_karma: i64,
