@@ -1,6 +1,7 @@
 use crate::comments::response::CommentResponse;
 use crate::error::reddit_error::RedditError;
 use crate::error::reddit_error::RedditError::InvalidDataType;
+use crate::message::response::Message;
 use crate::responses::listing::Listing;
 use crate::Error;
 use serde::de::Error as DeError;
@@ -10,14 +11,11 @@ use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use crate::responses::message::Message;
-
 use crate::submission::response::SubmissionResponse;
 use crate::subreddit::response::AboutSubreddit;
 use crate::user::response::AboutUser;
 
 pub mod listing;
-pub mod message;
 
 /// A Generic Response from Reddit the type is pre determined by API
 /// Data from Reddit usually follows this format

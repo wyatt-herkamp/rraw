@@ -44,7 +44,9 @@ impl Debug for PersonalInformation {
 }
 #[derive(Deserialize, Clone)]
 pub struct AboutUser {
+    #[serde(default)]
     pub is_employee: bool,
+    #[serde(default)]
     pub is_friend: bool,
     //TODO expand upon later
     pub subreddit: Value,
@@ -56,6 +58,7 @@ pub struct AboutUser {
     pub is_gold: bool,
     #[serde(default)]
     pub is_suspended: bool,
+    #[serde(default)]
     pub is_mod: bool,
     #[serde(default)]
     pub awarder_karma: i64,
@@ -64,6 +67,7 @@ pub struct AboutUser {
     pub hide_from_robots: bool,
     #[serde(default)]
     pub link_karma: i64,
+    #[serde(default)]
     pub is_blocked: bool,
     #[serde(default)]
     pub total_karma: i64,

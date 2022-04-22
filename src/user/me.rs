@@ -1,10 +1,15 @@
 use crate::auth::PasswordAuthenticator;
 use crate::comments::response::CommentsResponse;
 use crate::error::Error;
+use crate::message::response::MessageListing;
+use crate::message::WhereMessage;
+use crate::responses::FullName;
 use crate::Client;
+use serde_json::Value;
 
 use crate::responses::listing::RedditListing;
 use crate::submission::response::SubmissionsResponse;
+use crate::subreddit::response::Friend;
 use crate::user::response::MeResponse;
 
 use crate::utils::options::FeedOption;
@@ -16,6 +21,41 @@ pub struct Me<'a> {
 }
 
 impl<'a> Me<'a> {
+    /// For blocking the author of a thing via inbox. - Reddit API
+    pub async fn block_author(&self, full_name: FullName) -> Result<Friend, Error> {
+        let string = "/api/block";
+
+        let string1 = format!("id={}", full_name);
+        let body = reqwest::Body::from(string1);
+
+        self.client.post_json::<Friend>(&string, true, body).await
+    }
+    /// Gets the Messages. Default for where_message is Inbox
+    pub async fn get_messages(
+        &self,
+        where_message: Option<WhereMessage>,
+        feed: Option<FeedOption>,
+    ) -> Result<MessageListing, Error> {
+        let mut string = format!("/message/{}", where_message.unwrap_or(WhereMessage::Inbox));
+        if let Some(f) = feed {
+            f.extend(&mut string);
+        }
+        self.client.get_json::<MessageListing>(&string, true).await
+    }
+    /// Composes a message.
+    pub async fn compose(
+        &self,
+        recipient: String,
+        subject: String,
+        body: String,
+    ) -> Result<Value, Error> {
+        let string = format!("api_type=json&subject={subject}&text={body}&to={recipient}");
+        let body = reqwest::Body::from(string);
+        self.client
+            .post_json::<Value>("/api/compose", true, body)
+            .await
+    }
+
     /// Comments
     pub async fn comments(&self, feed: Option<FeedOption>) -> Result<CommentsResponse, Error> {
         let mut string = format!("/user/{}/comments", &self.me.about.name);
@@ -43,6 +83,7 @@ impl<'a> Me<'a> {
             .get_json::<SubmissionsResponse>(&*string, false)
             .await;
     }
+
     /// User Overview
     pub async fn overview(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/overview", &self.me.about.name);

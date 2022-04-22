@@ -8,20 +8,17 @@ pub mod subreddit;
 pub mod user;
 pub mod utils;
 use log::trace;
-use std::fmt::Formatter;
 
 use std::sync::Arc;
 
 use reqwest::header::HeaderMap;
 use reqwest::{Body, Client as ReqwestClient, ClientBuilder, Response};
 use serde::de::DeserializeOwned;
-use serde::{de, Deserialize, Deserializer};
 
 use crate::auth::{Authenticator, PasswordAuthenticator};
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
-use crate::message::Inbox;
 use crate::subreddit::response::{SubredditResponse, Subreddits};
 use crate::subreddit::Subreddit;
 use crate::user::me::Me;
@@ -270,31 +267,13 @@ impl Client<PasswordAuthenticator> {
     /// use log::LevelFilter;
     ///    use rraw::auth::{ PasswordAuthenticator};
     ///    use rraw::Client;
-    ///    env_logger::builder().is_test(true).filter_level(LevelFilter::Trace).try_init();
-    ///    let client = Client:: login(PasswordAuthenticator::new(env::var("CLIENT_ID")?,env::var("CLIENT_SECRET")?,env::var("USERNAME")?,env::var("PASSWORD")?), "RRAW Test (by u/KingTuxWH)").await?;
-    ///    let inbox = client.inbox();    
-    ///    Ok(())
-    /// }
-    /// ```
-    pub fn inbox(&self) -> Inbox {
-        Inbox { me: self }
-    }
-
-    /// Gets the User Inbox Struct
-    /// ```no_run
-    /// #[tokio::main]
-    /// async fn main() ->anyhow::Result<()>{
-    ///    use std::env;
-    /// use log::LevelFilter;
-    ///    use rraw::auth::{ PasswordAuthenticator};
-    ///    use rraw::Client;
     ///   env_logger::builder().is_test(true).filter_level(LevelFilter::Trace).try_init();
     ///    let client = Client:: login(PasswordAuthenticator::new(env::var("CLIENT_ID")?,env::var("CLIENT_SECRET")?,env::var("USERNAME")?,env::var("PASSWORD")?), "RRAW Test (by u/KingTuxWH)").await?;
     ///    let me = client.me().await?;    
     ///    Ok(())
     /// }
     /// ```
-    pub async fn me<'a>(&'a self) -> Result<Me<'a>, Error> {
+    pub async fn me(&self) -> Result<Me<'_>, Error> {
         let me: MeResponse = self.get_json("/api/v1/me", true).await?;
         Ok(Me { client: self, me })
     }

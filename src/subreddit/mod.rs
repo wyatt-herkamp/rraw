@@ -12,6 +12,7 @@ use crate::error::Error;
 use crate::subreddit::response::{AboutSubreddit, Contributors, Friend, Moderators};
 use crate::utils::options::{FeedOption, FriendType};
 use async_trait::async_trait;
+use serde_json::Value;
 
 /// Subreddit Object
 pub struct Subreddit<'a, A: Authenticator> {
@@ -69,6 +70,20 @@ impl<'a> Subreddit<'a, PasswordAuthenticator> {
 
         let body = Body::from(format!("name={username}&type={typ}"));
         return self.me.post_json::<Friend>(&*string, true, body).await;
+    }
+
+    pub async fn compose(
+        &self,
+        recipient: String,
+        subject: String,
+        body: String,
+    ) -> Result<Value, Error> {
+        let string = format!(
+            "api_type=json&subject={subject}&text={body}&to={recipient}&from_sr={}",
+            self.subreddit.name
+        );
+        let body = reqwest::Body::from(string);
+        self.me.post_json::<Value>("/api/compose", true, body).await
     }
 }
 #[async_trait]
