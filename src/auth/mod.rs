@@ -1,5 +1,4 @@
 use std::fmt::{Debug, Formatter};
-use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use async_trait::async_trait;
@@ -9,7 +8,6 @@ use reqwest::{Body, Client};
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
-use tokio::sync::RwLock;
 pub use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -38,11 +36,13 @@ pub trait Authenticator: Clone + Send + Sync + Debug {
 /// AnonymousAuthenticator
 #[derive(Clone)]
 pub struct AnonymousAuthenticator;
+
 impl Debug for AnonymousAuthenticator {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "[AnonymousAuthenticator]")
     }
 }
+
 #[async_trait]
 impl Authenticator for AnonymousAuthenticator {
     /// Returns true because it is anonymous
@@ -67,9 +67,8 @@ impl Authenticator for AnonymousAuthenticator {
 
 impl AnonymousAuthenticator {
     /// Creates a new Authenticator
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> Arc<RwLock<AnonymousAuthenticator>> {
-        Arc::new(RwLock::new(AnonymousAuthenticator {}))
+    pub fn new() -> AnonymousAuthenticator {
+        AnonymousAuthenticator
     }
 }
 
@@ -99,6 +98,7 @@ impl Debug for PasswordAuthenticator {
         )
     }
 }
+
 impl PasswordAuthenticator {
     /// Creates a new Authenticator
     #[allow(clippy::new_ret_no_self)]
@@ -107,15 +107,15 @@ impl PasswordAuthenticator {
         client_secret: S,
         username: S,
         password: S,
-    ) -> Arc<RwLock<PasswordAuthenticator>> {
-        Arc::new(RwLock::new(PasswordAuthenticator {
+    ) -> PasswordAuthenticator {
+        PasswordAuthenticator {
             token: None,
             expiration_time: None,
             client_id: client_id.into(),
             client_secret: client_secret.into(),
             username: username.into(),
             password: password.into(),
-        }))
+        }
     }
 }
 
@@ -139,7 +139,7 @@ impl Authenticator for PasswordAuthenticator {
                     self.client_secret.to_owned()
                 ))
             ))
-            .unwrap(),
+                .unwrap(),
         );
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
         header.insert(
@@ -161,9 +161,9 @@ impl Authenticator for PasswordAuthenticator {
         let x = token.expires_in * 1000;
         let x1 = (x as u128)
             + SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_millis();
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
         self.expiration_time = Some(x1);
         return Ok(true);
     }

@@ -20,6 +20,8 @@ pub enum Error {
     RedditError(RedditError),
     #[error("{0}")]
     Other(String),
+    #[error("The Token Has Expired")]
+    TokenExpired,
 }
 
 impl From<RedditError> for Error {

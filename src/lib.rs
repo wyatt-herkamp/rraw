@@ -7,9 +7,9 @@ pub mod submission;
 pub mod subreddit;
 pub mod user;
 pub mod utils;
+
 use log::trace;
 
-use std::sync::Arc;
 
 use reqwest::header::HeaderMap;
 use reqwest::{Body, Client as ReqwestClient, ClientBuilder, Response};
@@ -25,12 +25,42 @@ use crate::user::me::Me;
 use crate::user::response::{MeResponse, UserResponse, Users};
 use crate::user::User;
 use crate::utils::options::FeedOption;
-use tokio::sync::{RwLock, RwLockReadGuard};
+
+macro_rules! get_auth {
+    ($se:ident) => {
+        {
+            #[cfg(not(feature = "shared_authentication"))]
+            let auth= $se.get_authenticator();
+            #[cfg(feature = "shared_authentication")]
+            let auth=$se.get_authenticator().await;
+            if auth.needs_token_refresh() {
+            trace!("Token Expired.");
+            #[cfg(not(feature = "shared_authentication"))]
+            {
+                return Err(Error::TokenExpired);
+            }
+            #[cfg(feature = "shared_authentication")]
+            {
+                trace!("Refreshing Token");
+                drop(auth);
+                $se.re_login().await?;
+                $se.get_authenticator().await
+            }
+        }else{
+                auth
+            }
+        }
+
+    };
+}
 
 /// This is who you are. This is your identity and you access point to the Reddit API
 #[derive(Clone)]
 pub struct Client<A: Authenticator> {
-    auth: Arc<RwLock<A>>,
+    #[cfg(feature = "shared_authentication")]
+    auth: std::sync::Arc<tokio::sync::RwLock<A>>,
+    #[cfg(not(feature = "shared_authentication"))]
+    auth: A,
     client: ReqwestClient,
     user_agent: String,
     pub oauth: bool,
@@ -38,8 +68,9 @@ pub struct Client<A: Authenticator> {
 
 impl<A: Authenticator> Client<A> {
     /// Creates a Instance of the Client. Complete Initial Login Steps
+    #[cfg(feature = "shared_authentication")]
     pub async fn login<S: Into<String>>(
-        auth: Arc<RwLock<A>>,
+        auth: std::sync::Arc<tokio::sync::RwLock<A>>,
         user_agent: S,
     ) -> Result<Client<A>, Error> {
         let user_agent = user_agent.into();
@@ -57,7 +88,24 @@ impl<A: Authenticator> Client<A> {
             oauth: b,
         })
     }
-
+    #[cfg(not(feature = "shared_authentication"))]
+    pub async fn login<S: Into<String>>(
+        mut auth: A,
+        user_agent: S,
+    ) -> Result<Client<A>, Error> {
+        let user_agent = user_agent.into();
+        let client = ClientBuilder::new()
+            .user_agent(user_agent.clone())
+            .build()?;
+        let b = auth.oauth();
+        auth.login(&client, &user_agent).await?;
+        Ok(Client {
+            auth,
+            client,
+            user_agent,
+            oauth: b,
+        })
+    }
     /// Loads SubReddit
     /// ```rust
     /// #[tokio::main]
@@ -159,28 +207,33 @@ impl<A: Authenticator> Client<A> {
         }
         self.get_json::<Users>(&url, false).await
     }
-    async fn re_login(&self) -> Result<bool, error::Error> {
+    #[cfg(not(feature = "shared_authentication"))]
+    pub async fn re_login(&mut self) -> Result<bool, error::Error> {
+        self.auth.login(&self.client, &self.user_agent).await
+    }
+    #[cfg(feature = "shared_authentication")]
+    pub async fn re_login(&self) -> Result<bool, error::Error> {
         let mut guard = self.auth.write().await;
         guard.login(&self.client, &self.user_agent).await
     }
 }
+
 impl<A: Authenticator> Client<A> {
     /// Gets the authenticator. Internal use
-    pub(crate) async fn get_authenticator(&self) -> RwLockReadGuard<'_, A> {
+    #[cfg(feature = "shared_authentication")]
+    pub(crate) async fn get_authenticator(&self) -> tokio::sync::RwLockReadGuard<'_, A> {
         self.auth.read().await
     }
+    #[cfg(not(feature = "shared_authentication"))]
+    pub(crate) fn get_authenticator(&self) -> &A {
+        &self.auth
+    }
     pub(crate) async fn get(&self, url: &str, oauth: bool) -> Result<Response, Error> {
-        let mut guard = self.get_authenticator().await;
-        if guard.needs_token_refresh() {
-            trace!("Token Expired. Refreshing");
-            drop(guard);
-            self.re_login().await?;
-            guard = self.get_authenticator().await;
-        }
-        let string = self.build_url(url, oauth, guard.oauth());
+        let authenticator = get_auth!(self);
+        let string = self.build_url(url, oauth, authenticator.oauth());
         let mut headers = HeaderMap::new();
-        guard.headers(&mut headers);
-        drop(guard);
+        authenticator.headers(&mut headers);
+        drop(authenticator);
         self.client
             .get(string)
             .headers(headers)
@@ -190,17 +243,12 @@ impl<A: Authenticator> Client<A> {
     }
     /// Makes a post request with Reqwest response
     pub(crate) async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, Error> {
-        let mut guard = self.get_authenticator().await;
-        if guard.needs_token_refresh() {
-            trace!("Token Expired. Refreshing");
-            drop(guard);
-            self.re_login().await?;
-            guard = self.get_authenticator().await;
-        }
-        let string = self.build_url(url, oauth, guard.oauth());
+        let authenticator = get_auth!(self);
+
+        let string = self.build_url(url, oauth, authenticator.oauth());
         let mut headers = HeaderMap::new();
-        guard.headers(&mut headers);
-        drop(guard);
+        authenticator.headers(&mut headers);
+        drop(authenticator);
         self.client
             .post(string)
             .body(body)
@@ -258,6 +306,7 @@ impl<A: Authenticator> Client<A> {
         format!("{stem}{dest}")
     }
 }
+
 impl Client<PasswordAuthenticator> {
     /// Gets the User Inbox Struct
     /// ```no_run
