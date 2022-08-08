@@ -16,7 +16,7 @@ use reqwest::header::HeaderMap;
 use reqwest::{Body, Client as ReqwestClient, ClientBuilder, Response};
 use serde::de::DeserializeOwned;
 
-use crate::auth::{Authenticator, PasswordAuthenticator};
+use crate::auth::{Authenticator, Authorized};
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
@@ -311,7 +311,7 @@ impl<A: Authenticator> Client<A> {
     }
 }
 
-impl Client<PasswordAuthenticator> {
+impl<A: Authorized> Client<A> {
     /// Gets the User Inbox Struct
     /// ```no_run
     /// #[tokio::main]
@@ -326,7 +326,7 @@ impl Client<PasswordAuthenticator> {
     ///    Ok(())
     /// }
     /// ```
-    pub async fn me(&self) -> Result<Me<'_>, Error> {
+    pub async fn me(&self) -> Result<Me<'_, A>, Error> {
         let me: MeResponse = self.get_json("/api/v1/me", true).await?;
         Ok(Me { client: self, me })
     }

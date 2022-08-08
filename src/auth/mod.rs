@@ -43,6 +43,9 @@ pub trait Authenticator: Clone + Send + Sync + Debug {
     fn get_refresh_token(&self) -> Option<String>;
 }
 
+#[async_trait]
+pub trait Authorized: Authenticator {}
+
 /// AnonymousAuthenticator
 #[derive(Clone, Default)]
 pub struct AnonymousAuthenticator;
@@ -239,6 +242,9 @@ impl Authenticator for PasswordAuthenticator {
         Option::None
     }
 }
+
+#[async_trait]
+impl Authorized for PasswordAuthenticator {}
 
 #[derive(Clone)]
 pub struct CodeAuthenticator {
@@ -447,3 +453,6 @@ impl Authenticator for CodeAuthenticator {
         self.refresh_token.to_owned()            
     }
 }
+
+#[async_trait]
+impl Authorized for CodeAuthenticator {}

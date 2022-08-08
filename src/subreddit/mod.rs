@@ -5,7 +5,7 @@ use reqwest::Body;
 
 use crate::submission::response::SubmissionsResponse;
 use crate::submission::SubmissionRetriever;
-use crate::{Client, PasswordAuthenticator};
+use crate::{Client, Authorized};
 
 use crate::auth::Authenticator;
 use crate::error::Error;
@@ -50,7 +50,7 @@ impl<'a, A: Authenticator> Subreddit<'a, A> {
     }
 }
 
-impl<'a> Subreddit<'a, PasswordAuthenticator> {
+impl<'a, A: Authorized> Subreddit<'a, A> {
     /// Adds a friend to the subreddit
     pub async fn add_friend(&self, username: String, typ: FriendType) -> Result<Friend, Error> {
         trace!(
