@@ -331,6 +331,26 @@ impl<A: Authorized> Client<A> {
         Ok(Me { client: self, me })
     }
     /// Gets the Refresh Token if exist
+    /// 
+    /// Note: Refresh Token only will be exist when using CodeAuthenticator with an Permanent Duration Authorization Code.
+    /// ```no_run
+    /// #[tokio::main]
+    /// async fn main() ->anyhow::Result<()>{
+    ///    use std::env;
+    /// use log::LevelFilter;
+    ///    use rraw::auth::{ CodeAuthenticator};
+    ///    use rraw::Client;
+    ///   env_logger::builder().is_test(true).filter_level(LevelFilter::Trace).try_init();
+    ///    let client = Client:: login(CodeAuthenticator::new(env::var("CLIENT_ID")?,env::var("CLIENT_SECRET")?,env::var("CODE")?,env::var("REDIRECT_URI")?), "RRAW Test (by u/KingTuxWH)").await?;
+    ///    let refresh_token = client.refresh_token();
+    ///    if refresh_token.is_some() {
+    ///        println!("Refresh Token Is: {}", refresh_token.unwrap());
+    ///    } else {
+    ///        println!("Refresh Token Not Exist!");
+    ///    }
+    ///    Ok(())
+    /// }
+    /// ```
     pub fn refresh_token(&self) -> Option<String> {
         self.refresh_token.to_owned()
     }
