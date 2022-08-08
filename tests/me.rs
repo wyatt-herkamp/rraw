@@ -14,11 +14,11 @@ mod me_tests {
             println!("Logger Failed to Init Error: {}", error);
         }
     }
-    async fn create_client() -> anyhow::Result<Client<PasswordAuthenticator>> {
+    async fn create_client_by_pass() -> anyhow::Result<Client<PasswordAuthenticator>> {
         dotenv::dotenv()?;
         let arc = PasswordAuthenticator::new(
-            std::env::var("CLIENT_KEY")?.as_str(),
-            std::env::var("CLIENT_SECRET")?.as_str(),
+            std::env::var("CLIENT_KEY_BY_PASS")?.as_str(),
+            std::env::var("CLIENT_SECRET_BY_PASS")?.as_str(),
             std::env::var("REDDIT_USER")?.as_str(),
             std::env::var("PASSWORD")?.as_str(),
         );
@@ -26,9 +26,9 @@ mod me_tests {
     }
     #[ignore]
     #[tokio::test]
-    async fn me_test() -> anyhow::Result<()> {
+    async fn me_test_by_pass() -> anyhow::Result<()> {
         init();
-        let client = create_client().await?;
+        let client = create_client_by_pass().await?;
 
         let me = client.me().await;
 
@@ -42,9 +42,9 @@ mod me_tests {
     }
     #[ignore]
     #[tokio::test]
-    async fn test_inbox() -> anyhow::Result<()> {
+    async fn test_inbox_by_pass() -> anyhow::Result<()> {
         init();
-        let client = create_client().await?;
+        let client = create_client_by_pass().await?;
 
         let me = client.me().await?;
 
