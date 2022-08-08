@@ -34,7 +34,7 @@ pub trait Authenticator: Clone + Send + Sync + Debug {
 }
 
 /// AnonymousAuthenticator
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct AnonymousAuthenticator;
 
 impl Debug for AnonymousAuthenticator {

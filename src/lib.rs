@@ -8,6 +8,7 @@ pub mod subreddit;
 pub mod user;
 pub mod utils;
 
+use std::fmt::{Debug, Formatter};
 use log::trace;
 
 
@@ -70,19 +71,17 @@ impl<A: Authenticator> Client<A> {
     /// Creates a Instance of the Client. Complete Initial Login Steps
     #[cfg(feature = "shared_authentication")]
     pub async fn login<S: Into<String>>(
-        auth: std::sync::Arc<tokio::sync::RwLock<A>>,
+        mut auth: A,
         user_agent: S,
     ) -> Result<Client<A>, Error> {
         let user_agent = user_agent.into();
         let client = ClientBuilder::new()
             .user_agent(user_agent.clone())
             .build()?;
-        let arc = auth.clone();
-        let mut guard = arc.write().await;
-        let b = guard.oauth();
-        let _x = guard.login(&client, &user_agent).await;
+        let b = auth.oauth();
+        let _x = auth.login(&client, &user_agent).await?;
         Ok(Client {
-            auth,
+            auth: std::sync::Arc::new(tokio::sync::RwLock::new(auth)),
             client,
             user_agent,
             oauth: b,
@@ -325,5 +324,11 @@ impl Client<PasswordAuthenticator> {
     pub async fn me(&self) -> Result<Me<'_>, Error> {
         let me: MeResponse = self.get_json("/api/v1/me", true).await?;
         Ok(Me { client: self, me })
+    }
+}
+
+impl<A: Authenticator> Debug for Client<A> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Reddit Client UserAgent: {}. Auth: {:?}", self.user_agent, self.auth)
     }
 }
