@@ -64,6 +64,7 @@ pub struct Client<A: Authenticator> {
     auth: A,
     client: ReqwestClient,
     user_agent: String,
+    refresh_token: Option<String>,
     pub oauth: bool,
 }
 
@@ -80,11 +81,13 @@ impl<A: Authenticator> Client<A> {
             .build()?;
         let b = auth.oauth();
         let _x = auth.login(&client, &user_agent).await?;
+        let r_t = auth.get_refresh_token();
         Ok(Client {
             auth: std::sync::Arc::new(tokio::sync::RwLock::new(auth)),
             client,
             user_agent,
             oauth: b,
+            refresh_token: r_t,
         })
     }
     #[cfg(not(feature = "shared_authentication"))]
@@ -97,12 +100,14 @@ impl<A: Authenticator> Client<A> {
             .user_agent(user_agent.clone())
             .build()?;
         let b = auth.oauth();
+        let r_t = auth.get_refresh_token();
         auth.login(&client, &user_agent).await?;
         Ok(Client {
             auth,
             client,
             user_agent,
             oauth: b,
+            refresh_token: r_t,
         })
     }
     /// Loads SubReddit
@@ -208,12 +213,12 @@ impl<A: Authenticator> Client<A> {
     }
     #[cfg(not(feature = "shared_authentication"))]
     pub async fn re_login(&mut self) -> Result<bool, error::Error> {
-        self.auth.login(&self.client, &self.user_agent).await
+        self.auth.token_refresh(&self.client, &self.user_agent).await
     }
     #[cfg(feature = "shared_authentication")]
     pub async fn re_login(&self) -> Result<bool, error::Error> {
         let mut guard = self.auth.write().await;
-        guard.login(&self.client, &self.user_agent).await
+        guard.token_refresh(&self.client, &self.user_agent).await
     }
 }
 
@@ -324,6 +329,10 @@ impl Client<PasswordAuthenticator> {
     pub async fn me(&self) -> Result<Me<'_>, Error> {
         let me: MeResponse = self.get_json("/api/v1/me", true).await?;
         Ok(Me { client: self, me })
+    }
+    /// Gets the Refresh Token if exist
+    pub fn refresh_token(&self) -> Option<String> {
+        self.refresh_token.to_owned()
     }
 }
 
