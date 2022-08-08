@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod me_tests {
     use log::LevelFilter;
-    use rraw::auth::PasswordAuthenticator;
+    use rraw::auth::{PasswordAuthenticator, CodeAuthenticator};
     use rraw::message::WhereMessage;
     use rraw::Client;
 
@@ -45,6 +45,56 @@ mod me_tests {
     async fn test_inbox() -> anyhow::Result<()> {
         init();
         let client = create_client().await?;
+
+        let me = client.me().await?;
+
+        me.get_messages(None, None).await.unwrap();
+        me.get_messages(Some(WhereMessage::SENT), None)
+            .await
+            .unwrap();
+        me.get_messages(Some(WhereMessage::Unread), None)
+            .await
+            .unwrap();
+        return Ok(());
+    }
+    async fn create_client_by_code() -> anyhow::Result<Client<CodeAuthenticator>> {
+        dotenv::dotenv()?;
+        let arc = CodeAuthenticator::new(
+            std::env::var("CLIENT_KEY_BY_CODE")?.as_str(),
+            std::env::var("CLIENT_SECRET_BY_CODE")?.as_str(),
+            std::env::var("CODE")?.as_str(),
+            std::env::var("REDIRECT_URI")?.as_str(),
+        );
+        Ok(Client::login(arc, "RRAW Test (by u/KingTuxWH)").await?)
+    }
+    #[ignore]
+    #[tokio::test]
+    async fn me_test_by_code() -> anyhow::Result<()> {
+        init();
+        let client = create_client_by_code().await?;
+
+        let me = client.me().await;
+
+        assert!(me.is_ok());
+        let me = me.unwrap();
+        assert!(me.saved(None).await.is_ok());
+        assert!(me.up_voted(None).await.is_ok());
+        assert!(me.down_voted(None).await.is_ok());
+
+        let r_t = client.refresh_token();
+        if r_t.is_some() {
+            println!("Refresh Token Is: {}", r_t.unwrap())
+        } else {
+            println!("Refresh Token Not Exist!")
+        }
+
+        return Ok(());
+    }
+    #[ignore]
+    #[tokio::test]
+    async fn test_inbox_by_code() -> anyhow::Result<()> {
+        init();
+        let client = create_client_by_code().await?;
 
         let me = client.me().await?;
 
