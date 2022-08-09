@@ -170,7 +170,7 @@ impl FromStr for FullName {
             return Err(Error::from("Then shalt thou count to two, no more, no less. Two shall be the number thou shalt count, and the number of the counting shall be two."));
         }
         return Ok(FullName {
-            reddit_type: RedditDataType::from_str(split.get(0).unwrap())?,
+            reddit_type: RedditDataType::from_str(split.first().unwrap())?,
             id: split.get(1).unwrap().to_string(),
         });
     }

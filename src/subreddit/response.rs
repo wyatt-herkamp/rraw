@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use crate::responses::GenericResponse;
 use std::fmt::{Debug, Display, Formatter};
 
 use crate::responses::listing::GenericListing;
 pub use serde::Deserialize;
+use serde_json::Value;
 
 /// The response from an add friend request
 #[derive(Debug, Deserialize)]
@@ -40,16 +42,25 @@ pub struct AboutSubreddit {
     pub title: Option<String>,
     pub created: f64,
     pub created_utc: f64,
+    #[serde(default)]
+    pub subscribers: u64,
+    #[serde(default)]
+    pub over18: bool,
+    #[serde(flatten)]
+    pub other: HashMap<String, Value>,
 }
+
 impl Display for AboutSubreddit {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.display_name)
     }
 }
+
 impl Debug for AboutSubreddit {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "[Subreddit]. Permalink: {}", self.url)
     }
 }
+
 pub type SubredditResponse = GenericResponse<AboutSubreddit>;
 pub type Subreddits = GenericListing<AboutSubreddit>;

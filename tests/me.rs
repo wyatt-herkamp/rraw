@@ -14,6 +14,7 @@ mod me_tests {
             println!("Logger Failed to Init Error: {}", error);
         }
     }
+
     async fn create_client_by_pass() -> anyhow::Result<Client<PasswordAuthenticator>> {
         dotenv::dotenv()?;
         let arc = PasswordAuthenticator::new(
@@ -24,6 +25,7 @@ mod me_tests {
         );
         Ok(Client::login(arc, "RRAW Test (by u/KingTuxWH)").await?)
     }
+
     #[ignore]
     #[tokio::test]
     async fn me_test_by_pass() -> anyhow::Result<()> {
@@ -40,6 +42,7 @@ mod me_tests {
 
         return Ok(());
     }
+
     #[ignore]
     #[tokio::test]
     async fn test_inbox_by_pass() -> anyhow::Result<()> {
@@ -57,6 +60,7 @@ mod me_tests {
             .unwrap();
         return Ok(());
     }
+
     async fn create_client_by_code() -> anyhow::Result<Client<CodeAuthenticator>> {
         dotenv::dotenv()?;
         let arc = CodeAuthenticator::new(
@@ -67,6 +71,7 @@ mod me_tests {
         );
         Ok(Client::login(arc, "RRAW Test (by u/KingTuxWH)").await?)
     }
+
     #[ignore]
     #[tokio::test]
     async fn me_test_by_code() -> anyhow::Result<()> {
@@ -90,6 +95,16 @@ mod me_tests {
 
         return Ok(());
     }
+
+    #[ignore]
+    #[test]
+    fn code_link() -> anyhow::Result<()> {
+        dotenv::dotenv()?;
+        let string = CodeAuthenticator::generate_authorization_url(std::env::var("CLIENT_KEY_BY_CODE").unwrap(), std::env::var("REDIRECT_URI").unwrap(), "my_state", "temporary", vec!["identity", "read", "save", "history"]);
+        println!("{}", string);
+        return Ok(());
+    }
+
     #[ignore]
     #[tokio::test]
     async fn test_inbox_by_code() -> anyhow::Result<()> {
@@ -107,6 +122,7 @@ mod me_tests {
             .unwrap();
         return Ok(());
     }
+
     async fn create_client_by_token() -> anyhow::Result<Client<TokenAuthenticator>> {
         dotenv::dotenv()?;
         let arc = TokenAuthenticator::new(
@@ -116,6 +132,7 @@ mod me_tests {
         );
         Ok(Client::login(arc, "RRAW Test (by u/KingTuxWH)").await?)
     }
+
     #[ignore]
     #[tokio::test]
     async fn me_test_by_token() -> anyhow::Result<()> {
@@ -139,6 +156,7 @@ mod me_tests {
 
         return Ok(());
     }
+
     #[ignore]
     #[tokio::test]
     async fn test_inbox_by_token() -> anyhow::Result<()> {

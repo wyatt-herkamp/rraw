@@ -8,6 +8,7 @@ pub mod subreddit;
 pub mod user;
 pub mod utils;
 
+use std::fmt::Write;
 use std::fmt::{Debug, Formatter};
 use log::trace;
 
@@ -178,7 +179,7 @@ impl<A: Authenticator> Client<A> {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
-            url.push_str(&format!("&limit={limit}"));
+            let _ = write!(url, "&limit={}", limit);
         }
         self.get_json::<Subreddits>(&url, false).await
     }
@@ -207,7 +208,7 @@ impl<A: Authenticator> Client<A> {
             url.push_str(options.url().as_str());
         }
         if let Some(limit) = limit {
-            url.push_str(&format!("&limit={limit}"));
+            let _ = write!(url, "&limit={}", limit);
         }
         self.get_json::<Users>(&url, false).await
     }
@@ -237,6 +238,7 @@ impl<A: Authenticator> Client<A> {
         let string = self.build_url(url, oauth, authenticator.oauth());
         let mut headers = HeaderMap::new();
         authenticator.headers(&mut headers);
+        #[cfg(feature = "shared_authentication")]
         drop(authenticator);
         self.client
             .get(string)
@@ -252,6 +254,7 @@ impl<A: Authenticator> Client<A> {
         let string = self.build_url(url, oauth, authenticator.oauth());
         let mut headers = HeaderMap::new();
         authenticator.headers(&mut headers);
+        #[cfg(feature = "shared_authentication")]
         drop(authenticator);
         self.client
             .post(string)
@@ -331,7 +334,7 @@ impl<A: Authorized> Client<A> {
         Ok(Me { client: self, me })
     }
     /// Gets the Refresh Token if exist
-    /// 
+    ///
     /// Note: Refresh Token only will be exist when using CodeAuthenticator with an Permanent Duration Authorization Code.
     /// The Refresh Token must be stored in a secure manner such as using the platform's Secret/Keyring service for future use.
     /// ```no_run
