@@ -37,7 +37,7 @@ impl<'a, A: Authenticator> Subreddit<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        return self.me.get_json::<Contributors>(&*string, true).await;
+        self.me.get_json::<Contributors>(&*string, true).await
     }
     /// Returns a Listing of Moderators to the Subreddit
     pub async fn get_moderators(&self, feed: Option<FeedOption>) -> Result<Moderators, Error> {
@@ -46,7 +46,7 @@ impl<'a, A: Authenticator> Subreddit<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        return self.me.get_json::<Moderators>(&*string, true).await;
+        self.me.get_json::<Moderators>(&string, true).await
     }
 }
 
@@ -62,14 +62,14 @@ impl<'a, A: Authorized> Subreddit<'a, A> {
         let string = format!("/r/{}/api/friend", &self.subreddit);
 
         let body = Body::from(format!("name={}&type={}", username, typ));
-        return self.me.post_json::<Friend>(&*string, true, body).await;
+        self.me.post_json::<Friend>(&string, true, body).await
     }
     ///  removes a friend from the Subreddit
     pub async fn remove_friend(&self, username: String, typ: FriendType) -> Result<Friend, Error> {
         let string = format!("/r/{}/api/unfriend", &self.subreddit);
 
         let body = Body::from(format!("name={username}&type={typ}"));
-        return self.me.post_json::<Friend>(&*string, true, body).await;
+        self.me.post_json::<Friend>(&string, true, body).await
     }
 
     pub async fn compose(
@@ -86,7 +86,7 @@ impl<'a, A: Authorized> Subreddit<'a, A> {
         self.me.post_json::<Value>("/api/compose", true, body).await
     }
 }
-#[async_trait]
+#[async_trait(?Send)]
 impl<'a, A: Authenticator> SubmissionRetriever for Subreddit<'a, A> {
     async fn get_submissions<T: Into<String> + std::marker::Send>(
         &self,

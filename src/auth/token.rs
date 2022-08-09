@@ -58,7 +58,7 @@ impl TokenAuthenticator {
     }
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl Authenticator for TokenAuthenticator {
     /// Logs in
     async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, Error> {
@@ -94,8 +94,7 @@ impl Authenticator for TokenAuthenticator {
             .map_err(InternalError::from)?;
         response.status().into_result()?;
 
-        let token = response.text().await?;
-        let token: TokenResponseData = serde_json::from_str(token.as_str())?;
+        let token: TokenResponseData =  response.json().await?;
         self.token = Some(token.access_token);
         let x = token.expires_in * 1000;
         let x1 = (x as u128)

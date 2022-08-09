@@ -35,7 +35,7 @@ pub struct Submission<'a, A: Authenticator, T: SubmissionType<'a>> {
     pub(crate) me: &'a Client<A>,
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl<'a, A: Authenticator, T: SubmissionType<'a>> CommentRetriever for Submission<'a, A, T> {
     async fn get_comments(&self, sort: Option<CommentOption>) -> Result<ListingArray, Error> {
         let mut path = self.submission.get_permalink().to_string();
@@ -48,7 +48,7 @@ impl<'a, A: Authenticator, T: SubmissionType<'a>> CommentRetriever for Submissio
 
 pub type Submissions<'a, A, T> = GenericListing<Submission<'a, A, T>>;
 
-#[async_trait]
+#[async_trait(?Send)]
 pub trait SubmissionRetriever {
     async fn get_submissions<T: Into<String> + std::marker::Send>(
         &self,

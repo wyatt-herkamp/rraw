@@ -60,6 +60,7 @@ macro_rules! get_auth {
 #[derive(Clone)]
 pub struct Client<A: Authenticator> {
     #[cfg(feature = "shared_authentication")]
+    #[cfg(not(target_arch = "wasm32"))]
     auth: std::sync::Arc<tokio::sync::RwLock<A>>,
     #[cfg(not(feature = "shared_authentication"))]
     auth: A,
@@ -71,6 +72,7 @@ pub struct Client<A: Authenticator> {
 
 impl<A: Authenticator> Client<A> {
     /// Creates a Instance of the Client. Complete Initial Login Steps
+    #[cfg(not(target_arch = "wasm32"))]
     #[cfg(feature = "shared_authentication")]
     pub async fn login<S: Into<String>>(
         mut auth: A,
@@ -91,6 +93,7 @@ impl<A: Authenticator> Client<A> {
             refresh_token: r_t,
         })
     }
+    #[cfg(not(target_arch = "wasm32"))]
     #[cfg(not(feature = "shared_authentication"))]
     pub async fn login<S: Into<String>>(
         mut auth: A,
@@ -272,10 +275,9 @@ impl<A: Authenticator> Client<A> {
     ) -> crate::error::Result<T> {
         let response = self.get(url, oauth).await?;
         response.status().into_result()?;
-        let value = response.text().await?;
-        trace!("{}", &value);
-        let x: T = serde_json::from_str(value.as_str())?;
-        Ok(x)
+        response.json().await.map_err(|error| {
+            Error::InternalError(InternalError::ReqwestError(error))
+        })
     }
     /// Makes a post request with JSON response
     pub(crate) async fn post_json<T: DeserializeOwned>(
@@ -286,11 +288,9 @@ impl<A: Authenticator> Client<A> {
     ) -> crate::error::Result<T> {
         let response = self.post(url, oauth, body).await?;
         response.status().into_result()?;
-
-        let value = response.text().await?;
-        trace!("{}", &value);
-        let x: T = serde_json::from_str(value.as_str())?;
-        Ok(x)
+        response.json().await.map_err(|error| {
+            Error::InternalError(InternalError::ReqwestError(error))
+        })
     }
     pub(crate) fn build_url(
         &self,
