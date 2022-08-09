@@ -333,6 +333,7 @@ impl<A: Authorized> Client<A> {
     /// Gets the Refresh Token if exist
     /// 
     /// Note: Refresh Token only will be exist when using CodeAuthenticator with an Permanent Duration Authorization Code.
+    /// The Refresh Token must be stored in a secure manner such as using the platform's Secret/Keyring service for future use.
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() ->anyhow::Result<()>{

@@ -278,7 +278,8 @@ impl Debug for CodeAuthenticator {
 
 impl CodeAuthenticator {
     /// Creates a new Authenticator by Code Flow
-    /// The "client_secret" for non-confidential clients (Installed APPs) is an empty string.
+    /// 
+    /// Note: The "client_secret" for non-confidential clients (Installed APPs) is an empty string.
     #[allow(clippy::new_ret_no_self)]
     pub fn new<S: Into<String>>(
         client_id: S,
