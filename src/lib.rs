@@ -16,7 +16,7 @@ use reqwest::header::HeaderMap;
 use reqwest::{Body, Client as ReqwestClient, ClientBuilder, Response};
 use serde::de::DeserializeOwned;
 
-use crate::auth::{Authenticator, PasswordAuthenticator};
+use crate::auth::{Authenticator, Authorized};
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
@@ -64,6 +64,7 @@ pub struct Client<A: Authenticator> {
     auth: A,
     client: ReqwestClient,
     user_agent: String,
+    refresh_token: Option<String>,
     pub oauth: bool,
 }
 
@@ -80,11 +81,13 @@ impl<A: Authenticator> Client<A> {
             .build()?;
         let b = auth.oauth();
         let _x = auth.login(&client, &user_agent).await?;
+        let r_t = auth.get_refresh_token();
         Ok(Client {
             auth: std::sync::Arc::new(tokio::sync::RwLock::new(auth)),
             client,
             user_agent,
             oauth: b,
+            refresh_token: r_t,
         })
     }
     #[cfg(not(feature = "shared_authentication"))]
@@ -97,12 +100,14 @@ impl<A: Authenticator> Client<A> {
             .user_agent(user_agent.clone())
             .build()?;
         let b = auth.oauth();
+        let r_t = auth.get_refresh_token();
         auth.login(&client, &user_agent).await?;
         Ok(Client {
             auth,
             client,
             user_agent,
             oauth: b,
+            refresh_token: r_t,
         })
     }
     /// Loads SubReddit
@@ -208,12 +213,12 @@ impl<A: Authenticator> Client<A> {
     }
     #[cfg(not(feature = "shared_authentication"))]
     pub async fn re_login(&mut self) -> Result<bool, error::Error> {
-        self.auth.login(&self.client, &self.user_agent).await
+        self.auth.token_refresh(&self.client, &self.user_agent).await
     }
     #[cfg(feature = "shared_authentication")]
     pub async fn re_login(&self) -> Result<bool, error::Error> {
         let mut guard = self.auth.write().await;
-        guard.login(&self.client, &self.user_agent).await
+        guard.token_refresh(&self.client, &self.user_agent).await
     }
 }
 
@@ -306,7 +311,7 @@ impl<A: Authenticator> Client<A> {
     }
 }
 
-impl Client<PasswordAuthenticator> {
+impl<A: Authorized> Client<A> {
     /// Gets the User Inbox Struct
     /// ```no_run
     /// #[tokio::main]
@@ -321,9 +326,34 @@ impl Client<PasswordAuthenticator> {
     ///    Ok(())
     /// }
     /// ```
-    pub async fn me(&self) -> Result<Me<'_>, Error> {
+    pub async fn me(&self) -> Result<Me<'_, A>, Error> {
         let me: MeResponse = self.get_json("/api/v1/me", true).await?;
         Ok(Me { client: self, me })
+    }
+    /// Gets the Refresh Token if exist
+    /// 
+    /// Note: Refresh Token only will be exist when using CodeAuthenticator with an Permanent Duration Authorization Code.
+    /// The Refresh Token must be stored in a secure manner such as using the platform's Secret/Keyring service for future use.
+    /// ```no_run
+    /// #[tokio::main]
+    /// async fn main() ->anyhow::Result<()>{
+    ///    use std::env;
+    /// use log::LevelFilter;
+    ///    use rraw::auth::{ CodeAuthenticator};
+    ///    use rraw::Client;
+    ///   env_logger::builder().is_test(true).filter_level(LevelFilter::Trace).try_init();
+    ///    let client = Client:: login(CodeAuthenticator::new(env::var("CLIENT_ID")?,env::var("CLIENT_SECRET")?,env::var("CODE")?,env::var("REDIRECT_URI")?), "RRAW Test (by u/KingTuxWH)").await?;
+    ///    let refresh_token = client.refresh_token();
+    ///    if refresh_token.is_some() {
+    ///        println!("Refresh Token Is: {}", refresh_token.unwrap());
+    ///    } else {
+    ///        println!("Refresh Token Not Exist!");
+    ///    }
+    ///    Ok(())
+    /// }
+    /// ```
+    pub fn refresh_token(&self) -> Option<String> {
+        self.refresh_token.to_owned()
     }
 }
 

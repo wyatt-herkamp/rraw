@@ -1,4 +1,4 @@
-use crate::auth::PasswordAuthenticator;
+use crate::auth::Authorized;
 use crate::comments::response::CommentsResponse;
 use crate::error::Error;
 use crate::message::response::MessageListing;
@@ -15,12 +15,12 @@ use crate::user::response::MeResponse;
 use crate::utils::options::FeedOption;
 
 /// The User Object for Reddit
-pub struct Me<'a> {
-    pub(crate) client: &'a Client<PasswordAuthenticator>,
+pub struct Me<'a, A: Authorized> {
+    pub(crate) client: &'a Client<A>,
     pub me: MeResponse,
 }
 
-impl<'a> Me<'a> {
+impl<'a, A: Authorized> Me<'a, A> {
     /// For blocking the author of a thing via inbox. - Reddit API
     pub async fn block_author(&self, full_name: FullName) -> Result<Friend, Error> {
         let string = "/api/block";
