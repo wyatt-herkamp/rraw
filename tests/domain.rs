@@ -21,6 +21,6 @@ async fn generic() -> anyhow::Result<()> {
     let domains = client.domain("rust-lang.org", None).await;
     assert!(domains.is_ok());
     let data = domains.unwrap().data;
-    for i in data.children {}
+    assert!(data.children.len() > 0);
     return Ok(());
 }
