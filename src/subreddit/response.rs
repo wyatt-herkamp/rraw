@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::responses::GenericResponse;
+use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 
 use crate::responses::listing::GenericListing;

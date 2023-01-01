@@ -42,7 +42,7 @@ impl<'a, A: Authenticator, T: SubmissionType<'a>> CommentRetriever for Submissio
         if let Some(options) = sort {
             options.extend(&mut path)
         }
-        return self.me.get_json::<ListingArray>(&path, false,false).await;
+        return self.me.get_json::<ListingArray>(&path, false, false).await;
     }
 }
 

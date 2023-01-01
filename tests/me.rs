@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod me_tests {
     use log::LevelFilter;
-    use rraw::auth::{PasswordAuthenticator, CodeAuthenticator, TokenAuthenticator};
+    use rraw::auth::{CodeAuthenticator, PasswordAuthenticator, TokenAuthenticator};
     use rraw::message::WhereMessage;
     use rraw::Client;
 
@@ -100,7 +100,13 @@ mod me_tests {
     #[test]
     fn code_link() -> anyhow::Result<()> {
         dotenv::dotenv()?;
-        let string = CodeAuthenticator::generate_authorization_url(std::env::var("CLIENT_KEY_BY_CODE").unwrap(), std::env::var("REDIRECT_URI").unwrap(), "my_state", "temporary", vec!["identity", "read", "save", "history"]);
+        let string = CodeAuthenticator::generate_authorization_url(
+            std::env::var("CLIENT_KEY_BY_CODE").unwrap(),
+            std::env::var("REDIRECT_URI").unwrap(),
+            "my_state",
+            "temporary",
+            vec!["identity", "read", "save", "history"],
+        );
         println!("{}", string);
         return Ok(());
     }

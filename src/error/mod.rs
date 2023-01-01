@@ -1,12 +1,12 @@
 pub mod http_error;
-pub mod reddit_error;
 pub mod internal_error;
+pub mod reddit_error;
 
-use reqwest::StatusCode;
-use thiserror::Error;
 use crate::error::http_error::HTTPError;
 use crate::error::internal_error::InternalError;
 use crate::error::reddit_error::RedditError;
+use reqwest::StatusCode;
+use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
 

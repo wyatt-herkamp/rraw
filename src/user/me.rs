@@ -24,7 +24,9 @@ impl<'a, A: Authorized> Me<'a, A> {
     /// For blocking the author of a thing via inbox. - Reddit API
     pub async fn block_author(&self, full_name: FullName) -> Result<Friend, Error> {
         let body = reqwest::Body::from(format!("id={}", full_name));
-        self.client.post_json::<Friend>("/api/block", true, body).await
+        self.client
+            .post_json::<Friend>("/api/block", true, body)
+            .await
     }
     /// Gets the Messages. Default for where_message is Inbox
     pub async fn get_messages(
@@ -36,7 +38,9 @@ impl<'a, A: Authorized> Me<'a, A> {
         if let Some(f) = feed {
             f.extend(&mut string);
         }
-        self.client.get_json::<MessageListing>(&string, true,false).await
+        self.client
+            .get_json::<MessageListing>(&string, true, false)
+            .await
     }
     /// Composes a message.
     pub async fn compose(
@@ -59,9 +63,8 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self
-            .client
-            .get_json::<CommentsResponse>(&*string, false,false)
+        self.client
+            .get_json::<CommentsResponse>(&*string, false, false)
             .await
     }
     /// user Submissions
@@ -74,9 +77,8 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self
-            .client
-            .get_json::<SubmissionsResponse>(&*string, false,false)
+        self.client
+            .get_json::<SubmissionsResponse>(&*string, false, false)
             .await
     }
 
@@ -87,7 +89,9 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&*string, false,false).await
+        self.client
+            .get_json::<RedditListing>(&*string, false, false)
+            .await
     }
     pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/saved", &self.me.about.name);
@@ -95,7 +99,9 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&*string, false,false).await
+        self.client
+            .get_json::<RedditListing>(&*string, false, false)
+            .await
     }
     pub async fn up_voted(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/upvoted", &self.me.about.name);
@@ -103,7 +109,9 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&string, false,false).await
+        self.client
+            .get_json::<RedditListing>(&string, false, false)
+            .await
     }
     pub async fn down_voted(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/downvoted", &self.me.about.name);
@@ -111,6 +119,8 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&string, false,false).await
+        self.client
+            .get_json::<RedditListing>(&string, false, false)
+            .await
     }
 }

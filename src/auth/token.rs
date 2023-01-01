@@ -1,17 +1,16 @@
 use std::fmt::{Debug, Formatter};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::auth::{CodeAuthenticator, TokenResponseData, AUTH_CONTENT_TYPE};
+use crate::{Authenticator, Authorized};
 use async_trait::async_trait;
 use log::warn;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Client};
-use crate::{Authenticator, Authorized};
-use crate::auth::{AUTH_CONTENT_TYPE, CodeAuthenticator, TokenResponseData};
 
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
 use crate::error::Error;
-
 
 #[derive(Clone)]
 pub struct TokenAuthenticator {
@@ -78,7 +77,7 @@ impl Authenticator for TokenAuthenticator {
                     self.client_secret.to_owned()
                 ))
             ))
-                .unwrap(),
+            .unwrap(),
         );
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
         header.insert(
@@ -94,28 +93,28 @@ impl Authenticator for TokenAuthenticator {
             .map_err(InternalError::from)?;
         response.status().into_result()?;
 
-        let token: TokenResponseData =  response.json().await?;
+        let token: TokenResponseData = response.json().await?;
         self.token = Some(token.access_token);
         let x = token.expires_in * 1000;
         let x1 = (x as u128)
             + SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis();
         self.expiration_time = Some(x1);
         return Ok(true);
     }
     /// Logs out
     async fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), Error> {
         let url = "https://www.reddit.com/api/v1/revoke_token";
-        let body = format!("token={}&token_type_hint=refresh_token", &self.refresh_token.to_owned());
+        let body = format!(
+            "token={}&token_type_hint=refresh_token",
+            &self.refresh_token.to_owned()
+        );
 
         let mut header = HeaderMap::new();
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
-        header.insert(
-            CONTENT_TYPE,
-            AUTH_CONTENT_TYPE.clone(),
-        );
+        header.insert(CONTENT_TYPE, AUTH_CONTENT_TYPE.clone());
         let response = client
             .post(url)
             .body(Body::from(body))

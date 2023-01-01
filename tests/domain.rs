@@ -1,5 +1,5 @@
 use log::LevelFilter;
-use rraw::auth::{AnonymousAuthenticator};
+use rraw::auth::AnonymousAuthenticator;
 use rraw::Client;
 
 fn init() {
@@ -20,9 +20,7 @@ async fn generic() -> anyhow::Result<()> {
 
     let domains = client.domain("rust-lang.org", None).await;
     assert!(domains.is_ok());
-    let data =domains.unwrap().data;
-    for i in data.children{
-        
-    }
+    let data = domains.unwrap().data;
+    for i in data.children {}
     return Ok(());
 }

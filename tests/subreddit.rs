@@ -1,5 +1,5 @@
 use log::LevelFilter;
-use rraw::auth::{AnonymousAuthenticator};
+use rraw::auth::AnonymousAuthenticator;
 use rraw::Client;
 
 fn init() {

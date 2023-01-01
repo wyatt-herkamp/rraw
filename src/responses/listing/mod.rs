@@ -1,6 +1,6 @@
+use crate::responses::{GenericResponse, RedditResponse};
 use serde::Deserialize;
 use std::fmt::{Debug, Formatter};
-use crate::responses::{GenericResponse, RedditResponse};
 
 #[derive(Deserialize)]
 /// The Listing API for async RRAW

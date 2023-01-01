@@ -1,12 +1,12 @@
 use std::fmt::{Debug, Formatter};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::auth::{TokenResponseData, AUTH_CONTENT_TYPE};
+use crate::{Authenticator, Authorized};
 use async_trait::async_trait;
 use log::warn;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Client};
-use crate::auth::{AUTH_CONTENT_TYPE, TokenResponseData};
-use crate::{Authenticator, Authorized};
 
 use crate::error::http_error::IntoResult;
 use crate::error::internal_error::InternalError;
@@ -84,7 +84,6 @@ impl CodeAuthenticator {
     }
 }
 
-
 #[async_trait(?Send)]
 impl Authenticator for CodeAuthenticator {
     /// Logs in
@@ -92,7 +91,8 @@ impl Authenticator for CodeAuthenticator {
         let url = "https://www.reddit.com/api/v1/access_token";
         let body = format!(
             "grant_type=authorization_code&code={}&redirect_uri={}",
-            &self.authorization_code.trim_end_matches("#_"), &self.redirect_uri
+            &self.authorization_code.trim_end_matches("#_"),
+            &self.redirect_uri
         );
         let mut header = HeaderMap::new();
         header.insert(
@@ -105,7 +105,7 @@ impl Authenticator for CodeAuthenticator {
                     self.client_secret.to_owned()
                 ))
             ))
-                .unwrap(),
+            .unwrap(),
         );
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
         header.insert(
@@ -121,15 +121,15 @@ impl Authenticator for CodeAuthenticator {
             .map_err(InternalError::from)?;
         response.status().into_result()?;
 
-        let token: TokenResponseData =  response.json().await?;
+        let token: TokenResponseData = response.json().await?;
 
         self.token = Some(token.access_token);
         let x = token.expires_in * 1000;
         let x1 = (x as u128)
             + SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis();
         self.expiration_time = Some(x1);
         if !token.refresh_token.is_empty() {
             self.refresh_token = Some(token.refresh_token);
@@ -150,10 +150,7 @@ impl Authenticator for CodeAuthenticator {
 
         let mut header = HeaderMap::new();
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
-        header.insert(
-            CONTENT_TYPE,
-            AUTH_CONTENT_TYPE.clone(),
-        );
+        header.insert(CONTENT_TYPE, AUTH_CONTENT_TYPE.clone());
         let response = client
             .post(url)
             .body(Body::from(body))
@@ -184,7 +181,7 @@ impl Authenticator for CodeAuthenticator {
                     self.client_secret.to_owned()
                 ))
             ))
-                .unwrap(),
+            .unwrap(),
         );
         header.insert(USER_AGENT, HeaderValue::from_str(user_agent).unwrap());
         header.insert(
@@ -200,15 +197,15 @@ impl Authenticator for CodeAuthenticator {
             .map_err(InternalError::from)?;
         response.status().into_result()?;
 
-        let token: TokenResponseData =  response.json().await?;
+        let token: TokenResponseData = response.json().await?;
 
         self.token = Some(token.access_token);
         let x = token.expires_in * 1000;
         let x1 = (x as u128)
             + SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis();
         self.expiration_time = Some(x1);
         return Ok(true);
     }
@@ -249,4 +246,3 @@ impl Authenticator for CodeAuthenticator {
 }
 
 impl Authorized for CodeAuthenticator {}
-

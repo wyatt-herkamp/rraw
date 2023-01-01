@@ -2,20 +2,21 @@ use std::fmt::{Debug, Formatter};
 
 use async_trait::async_trait;
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{Client};
+use reqwest::Client;
 use serde::Deserialize;
 
 use crate::error::Error;
 
-mod token;
 mod code;
 mod password;
+mod token;
 
-pub use token::TokenAuthenticator;
 pub use code::CodeAuthenticator;
 pub use password::PasswordAuthenticator;
+pub use token::TokenAuthenticator;
 
-pub static AUTH_CONTENT_TYPE: HeaderValue = HeaderValue::from_static("application/x-www-form-urlencoded");
+pub static AUTH_CONTENT_TYPE: HeaderValue =
+    HeaderValue::from_static("application/x-www-form-urlencoded");
 
 #[derive(Deserialize, Debug)]
 pub struct TokenResponseData {
