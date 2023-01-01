@@ -43,6 +43,6 @@ impl<'a, A: Authenticator, T: CommentType<'a>> CommentRetriever for Comment<'a, 
         if let Some(options) = sort {
             options.extend(&mut path)
         }
-        return self.me.get_json::<ListingArray>(&path, false).await;
+        return self.me.get_json::<ListingArray>(&path, false,false).await;
     }
 }

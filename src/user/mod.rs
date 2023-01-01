@@ -32,7 +32,7 @@ impl<'a, A: Authenticator> User<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        return self.me.get_json::<CommentsResponse>(&*string, false).await;
+        return self.me.get_json::<CommentsResponse>(&*string, false,false).await;
     }
     /// user Submissions
     pub async fn submissions(
@@ -46,7 +46,7 @@ impl<'a, A: Authenticator> User<'a, A> {
         }
         return self
             .me
-            .get_json::<SubmissionsResponse>(&*string, false)
+            .get_json::<SubmissionsResponse>(&*string, false,false)
             .await;
     }
     /// User Overview
@@ -56,6 +56,6 @@ impl<'a, A: Authenticator> User<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        return self.me.get_json::<RedditListing>(&*string, false).await;
+        return self.me.get_json::<RedditListing>(&*string, false,false).await;
     }
 }
