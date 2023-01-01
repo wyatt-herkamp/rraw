@@ -37,7 +37,7 @@ impl<'a, A: Authenticator> Subreddit<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.me.get_json::<Contributors>(&*string, true).await
+        self.me.get_json::<Contributors>(&*string, true,false).await
     }
     /// Returns a Listing of Moderators to the Subreddit
     pub async fn get_moderators(&self, feed: Option<FeedOption>) -> Result<Moderators, Error> {
@@ -46,7 +46,7 @@ impl<'a, A: Authenticator> Subreddit<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.me.get_json::<Moderators>(&string, true).await
+        self.me.get_json::<Moderators>(&string, true,false).await
     }
 }
 
@@ -97,6 +97,6 @@ impl<'a, A: Authenticator> SubmissionRetriever for Subreddit<'a, A> {
         if let Some(options) = feed_options {
             options.extend(&mut path)
         }
-        return self.me.get_json::<SubmissionsResponse>(&path, false).await;
+        return self.me.get_json::<SubmissionsResponse>(&path, false,false).await;
     }
 }

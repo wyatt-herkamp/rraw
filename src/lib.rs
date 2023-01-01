@@ -16,6 +16,7 @@ use log::trace;
 use reqwest::header::HeaderMap;
 use reqwest::{Body, Client as ReqwestClient, ClientBuilder, Response};
 use serde::de::DeserializeOwned;
+use submission::response::SubmissionsResponse;
 
 use crate::auth::{Authenticator, Authorized};
 use crate::error::http_error::IntoResult;
@@ -114,6 +115,27 @@ impl<A: Authenticator> Client<A> {
             refresh_token: r_t,
         })
     }
+
+    /// Loads a Domain listing
+    /// ```rust
+    /// #[tokio::main]
+    /// async fn main() ->anyhow::Result<()>{
+    ///    use log::LevelFilter;
+    /// use rraw::auth::AnonymousAuthenticator;
+    ///    use rraw::Client;
+    ///    env_logger::builder().is_test(true).filter_level(LevelFilter::Trace).try_init();
+    ///    let client = Client:: login(AnonymousAuthenticator::new(), "RRAW Test (by u/KingTuxWH)").await?;
+    ///    let subreddit = client.domain("rust-lang.org");
+    ///    Ok(())
+    /// }
+    /// ```
+    pub async fn domain<T: Into<String>>(&self, name: T, feed_options: Option<FeedOption>,) -> Result<SubmissionsResponse, Error>  {
+        let mut path = format!("/domain/{}.json", name.into());
+        if let Some(options) = feed_options {
+            options.extend(&mut path)
+        }
+        return self.get_json::<SubmissionsResponse>(&path, false,true).await;
+    }
     /// Loads SubReddit
     /// ```rust
     /// #[tokio::main]
@@ -129,7 +151,7 @@ impl<A: Authenticator> Client<A> {
     /// ```
     pub async fn subreddit<T: Into<String>>(&self, name: T) -> Result<Subreddit<'_, A>, Error> {
         let string = format!("/r/{}/about.json", name.into());
-        let subreddit = self.get_json::<SubredditResponse>(&string, false).await?;
+        let subreddit = self.get_json::<SubredditResponse>(&string, false,false).await?;
         Ok(Subreddit {
             me: self,
             subreddit: subreddit.data,
@@ -151,7 +173,7 @@ impl<A: Authenticator> Client<A> {
     /// ```
     pub async fn user<T: Into<String>>(&self, name: T) -> Result<User<'_, A>, Error> {
         let string = format!("/u/{}/about", name.into());
-        let user = self.get_json::<UserResponse>(&string, false).await?;
+        let user = self.get_json::<UserResponse>(&string, false,false).await?;
         Ok(User {
             me: self,
             user: user.data,
@@ -184,7 +206,7 @@ impl<A: Authenticator> Client<A> {
         if let Some(limit) = limit {
             let _ = write!(url, "&limit={}", limit);
         }
-        self.get_json::<Subreddits>(&url, false).await
+        self.get_json::<Subreddits>(&url, false,false).await
     }
 
     /// Searches for Subreddits by name
@@ -213,7 +235,7 @@ impl<A: Authenticator> Client<A> {
         if let Some(limit) = limit {
             let _ = write!(url, "&limit={}", limit);
         }
-        self.get_json::<Users>(&url, false).await
+        self.get_json::<Users>(&url, false,false).await
     }
     #[cfg(not(feature = "shared_authentication"))]
     pub async fn re_login(&mut self) -> Result<bool, error::Error> {
@@ -236,9 +258,9 @@ impl<A: Authenticator> Client<A> {
     pub(crate) fn get_authenticator(&self) -> &A {
         &self.auth
     }
-    pub(crate) async fn get(&self, url: &str, oauth: bool) -> Result<Response, Error> {
+    pub(crate) async fn get(&self, url: &str, oauth: bool,private_api:bool) -> Result<Response, Error> {
         let authenticator = get_auth!(self);
-        let string = self.build_url(url, oauth, authenticator.oauth());
+        let string = self.build_url(url, oauth, authenticator.oauth(),private_api);
         let mut headers = HeaderMap::new();
         authenticator.headers(&mut headers);
         #[cfg(feature = "shared_authentication")]
@@ -254,7 +276,7 @@ impl<A: Authenticator> Client<A> {
     pub(crate) async fn post(&self, url: &str, oauth: bool, body: Body) -> Result<Response, Error> {
         let authenticator = get_auth!(self);
 
-        let string = self.build_url(url, oauth, authenticator.oauth());
+        let string = self.build_url(url, oauth, authenticator.oauth(),false);
         let mut headers = HeaderMap::new();
         authenticator.headers(&mut headers);
         #[cfg(feature = "shared_authentication")]
@@ -272,8 +294,9 @@ impl<A: Authenticator> Client<A> {
         &self,
         url: &str,
         oauth: bool,
+        private_api:bool
     ) -> crate::error::Result<T> {
-        let response = self.get(url, oauth).await?;
+        let response = self.get(url, oauth,private_api).await?;
         response.status().into_result()?;
         response.json().await.map_err(|error| {
             Error::InternalError(InternalError::ReqwestError(error))
@@ -297,8 +320,12 @@ impl<A: Authenticator> Client<A> {
         dest: &str,
         oauth_required: bool,
         oauth_supported: bool,
+        private_api: bool,
     ) -> String {
-        let stem = if oauth_required || oauth_supported {
+        let stem = if private_api {
+            "https://reddit.com"
+        }
+        else if oauth_required || oauth_supported {
             // All endpoints support OAuth, but some do not support the regular endpoint. If we are
             // required to use it or support it, we will use it.
             assert!(
@@ -330,7 +357,7 @@ impl<A: Authorized> Client<A> {
     /// }
     /// ```
     pub async fn me(&self) -> Result<Me<'_, A>, Error> {
-        let me: MeResponse = self.get_json("/api/v1/me", true).await?;
+        let me: MeResponse = self.get_json("/api/v1/me", true,false).await?;
         Ok(Me { client: self, me })
     }
     /// Gets the Refresh Token if exist

@@ -36,7 +36,7 @@ impl<'a, A: Authorized> Me<'a, A> {
         if let Some(f) = feed {
             f.extend(&mut string);
         }
-        self.client.get_json::<MessageListing>(&string, true).await
+        self.client.get_json::<MessageListing>(&string, true,false).await
     }
     /// Composes a message.
     pub async fn compose(
@@ -61,7 +61,7 @@ impl<'a, A: Authorized> Me<'a, A> {
         }
         self
             .client
-            .get_json::<CommentsResponse>(&*string, false)
+            .get_json::<CommentsResponse>(&*string, false,false)
             .await
     }
     /// user Submissions
@@ -76,7 +76,7 @@ impl<'a, A: Authorized> Me<'a, A> {
         }
         self
             .client
-            .get_json::<SubmissionsResponse>(&*string, false)
+            .get_json::<SubmissionsResponse>(&*string, false,false)
             .await
     }
 
@@ -87,7 +87,7 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&*string, false).await
+        self.client.get_json::<RedditListing>(&*string, false,false).await
     }
     pub async fn saved(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/saved", &self.me.about.name);
@@ -95,7 +95,7 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&*string, false).await
+        self.client.get_json::<RedditListing>(&*string, false,false).await
     }
     pub async fn up_voted(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/upvoted", &self.me.about.name);
@@ -103,7 +103,7 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&string, false).await
+        self.client.get_json::<RedditListing>(&string, false,false).await
     }
     pub async fn down_voted(&self, feed: Option<FeedOption>) -> Result<RedditListing, Error> {
         let mut string = format!("/user/{}/downvoted", &self.me.about.name);
@@ -111,6 +111,6 @@ impl<'a, A: Authorized> Me<'a, A> {
             string.push('?');
             string.push_str(options.url().as_str());
         }
-        self.client.get_json::<RedditListing>(&string, false).await
+        self.client.get_json::<RedditListing>(&string, false,false).await
     }
 }

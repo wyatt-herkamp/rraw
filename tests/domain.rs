@@ -18,12 +18,11 @@ async fn generic() -> anyhow::Result<()> {
     init();
     let client = Client::login(AnonymousAuthenticator::new(), "RRAW Test (by u/KingTuxWH)").await?;
 
-    let subreddit = client.subreddit("askreddit").await;
-
-    assert!(subreddit.is_ok());
-    let data = subreddit.unwrap();
-    for (id, value) in data.subreddit.other.iter() {
-        println!("{id}: {value:?}");
+    let domains = client.domain("rust-lang.org", None).await;
+    assert!(domains.is_ok());
+    let data =domains.unwrap().data;
+    for i in data.children{
+        
     }
     return Ok(());
 }
