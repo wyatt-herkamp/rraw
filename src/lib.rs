@@ -125,7 +125,7 @@ impl<A: Authenticator> Client<A> {
     ///    use rraw::Client;
     ///    env_logger::builder().is_test(true).filter_level(LevelFilter::Trace).try_init();
     ///    let client = Client:: login(AnonymousAuthenticator::new(), "RRAW Test (by u/KingTuxWH)").await?;
-    ///    let subreddit = client.domain("rust-lang.org");
+    ///    let subreddit = client.domain("rust-lang.org",None);
     ///    Ok(())
     /// }
     /// ```
