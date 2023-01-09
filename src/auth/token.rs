@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::auth::{CodeAuthenticator, TokenResponseData, AUTH_CONTENT_TYPE};
-use crate::{Authenticator, Authorized};
+use crate::{Authenticator, Authorized, utils};
 use async_trait::async_trait;
 use log::warn;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
@@ -67,15 +67,12 @@ impl Authenticator for TokenAuthenticator {
             &self.refresh_token
         );
         let mut header = HeaderMap::new();
+
         header.insert(
             AUTHORIZATION,
             HeaderValue::from_str(&*format!(
                 "Basic {}",
-                base64::encode(format!(
-                    "{}:{}",
-                    self.client_id.to_owned(),
-                    self.client_secret.to_owned()
-                ))
+                utils::basic_header(&self.client_id, &self.client_secret)
             ))
             .unwrap(),
         );
