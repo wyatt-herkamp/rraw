@@ -3,7 +3,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::auth::{TokenResponseData, AUTH_CONTENT_TYPE};
 use crate::{Authenticator, Authorized, utils};
-use async_trait::async_trait;
 use log::warn;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Client};
@@ -84,7 +83,6 @@ impl CodeAuthenticator {
     }
 }
 
-#[async_trait(?Send)]
 impl Authenticator for CodeAuthenticator {
     /// Logs in
     async fn login(&mut self, client: &Client, user_agent: &str) -> Result<bool, Error> {

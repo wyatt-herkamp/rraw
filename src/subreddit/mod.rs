@@ -11,7 +11,6 @@ use crate::auth::Authenticator;
 use crate::error::Error;
 use crate::subreddit::response::{AboutSubreddit, Contributors, Friend, Moderators};
 use crate::utils::options::{FeedOption, FriendType};
-use async_trait::async_trait;
 use serde_json::Value;
 
 /// Subreddit Object
@@ -88,7 +87,6 @@ impl<'a, A: Authorized> Subreddit<'a, A> {
         self.me.post_json::<Value>("/api/compose", true, body).await
     }
 }
-#[async_trait(?Send)]
 impl<'a, A: Authenticator> SubmissionRetriever for Subreddit<'a, A> {
     async fn get_submissions<T: Into<String> + std::marker::Send>(
         &self,

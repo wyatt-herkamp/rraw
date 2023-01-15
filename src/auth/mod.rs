@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Formatter};
 
-use async_trait::async_trait;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Client;
 use serde::Deserialize;
@@ -32,7 +31,7 @@ fn default_response() -> String {
     "".to_string()
 }
 
-#[async_trait(?Send)]
+
 pub trait Authenticator: Clone + Send + Sync + Debug {
     /// Logins to the Reddit API
     /// true if successful
@@ -63,7 +62,6 @@ impl Debug for AnonymousAuthenticator {
     }
 }
 
-#[async_trait(?Send)]
 impl Authenticator for AnonymousAuthenticator {
     /// Returns true because it is anonymous
     async fn login(&mut self, _client: &Client, _user_agent: &str) -> Result<bool, Error> {

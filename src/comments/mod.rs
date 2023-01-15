@@ -3,7 +3,6 @@ pub mod response;
 use crate::auth::Authenticator;
 use crate::utils::options::CommentOption;
 use crate::Client;
-use async_trait::async_trait;
 
 use crate::error::Error;
 use crate::responses::listing::{GenericListing, ListingArray};
@@ -32,11 +31,9 @@ pub struct Comment<'a, A: Authenticator, T: CommentType<'a>> {
 
 pub type Comments<'a, A, T> = GenericListing<Comment<'a, A, T>>;
 
-#[async_trait(?Send)]
 pub trait CommentRetriever {
     async fn get_comments(&self, sort: Option<CommentOption>) -> Result<ListingArray, Error>;
 }
-#[async_trait(?Send)]
 impl<'a, A: Authenticator, T: CommentType<'a>> CommentRetriever for Comment<'a, A, T> {
     async fn get_comments(&self, sort: Option<CommentOption>) -> Result<ListingArray, Error> {
         let mut path = self.comment.get_permalink().to_string();
