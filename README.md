@@ -1,8 +1,13 @@
 
 # RRAW ![crates.io](https://img.shields.io/crates/v/rraw.svg) [![Documentation](https://docs.rs/rraw/badge.svg)](https://docs.rs/rraw) [![Rust](https://github.com/wherkamp/rraw/actions/workflows/rust.yml/badge.svg)](https://github.com/wherkamp/rraw/actions/workflows/rust.yml)
 
+
+
 **R**ust **R**eddit **A**PI **W**rapper is a basic Rust Wrapper for Reddit. It gives simple and easy use to common tasks done via the Reddit API. It also does very little processing of the Reddit API giving you near raw results from the Reddit API.
 
+# End of Life
+
+Due to recent changes to the Reddit API I no longer plan to be maintaining this library. 
 
 # Features
 
