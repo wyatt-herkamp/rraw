@@ -1,6 +1,6 @@
 [package]
 name = "rraw"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["Wyatt J Herkamp <wherkamp@kingtux.me>"]
 edition = "2021"
 license = "MIT"
